@@ -69,6 +69,19 @@
             <artifactId>spring-boot-starter-webservices-test</artifactId>
             <scope>test</scope>
         </dependency>
+        <!-- AgentScope HarnessAgent 核心依赖（会自动引入 agentscope-core） -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-harness</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- DashScope 模型扩展（用阿里云百炼的话加上） -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-extensions-model-dashscope</artifactId>
+            <version>2.0.1</version>
+        </dependency>
     </dependencies>
 
     <build>
