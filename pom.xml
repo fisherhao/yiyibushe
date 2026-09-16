@@ -76,11 +76,38 @@
             <version>2.0.1</version>
         </dependency>
 
-        <!-- DashScope 模型扩展（用阿里云百炼的话加上） -->
+        <!-- AgentScope 核心：ReActAgent、Pipeline、Msg 等 -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-core</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- 模型扩展：通义千问 DashScope -->
         <dependency>
             <groupId>io.agentscope</groupId>
             <artifactId>agentscope-extensions-model-dashscope</artifactId>
             <version>2.0.1</version>
+        </dependency>
+
+        <!-- A2A Server：把本地 Agent 暴露为 HTTP 服务 -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-extensions-a2a-server</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- A2A Client：调用远程 Agent -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-extensions-a2a-client</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
     </dependencies>
 
