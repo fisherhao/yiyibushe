@@ -8,11 +8,11 @@
         <version>4.0.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.agentscope.chat</groupId>
-    <artifactId>chat</artifactId>
+    <groupId>com.yiyibushe</groupId>
+    <artifactId>yiyibushe</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>chat</name>
-    <description>chat</description>
+    <name>yiyibushe</name>
+    <description>依依不舍 - 阿里云 OSS + DashScope 通义万相虚拟试穿服务</description>
     <url/>
     <licenses>
         <license/>
@@ -54,6 +54,40 @@
             <artifactId>lombok</artifactId>
             <optional>true</optional>
         </dependency>
+
+        <!-- JSON 工具：FastJSON2（最新版，已修复低版本高危漏洞） -->
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>2.0.65</version>
+        </dependency>
+
+        <!-- 阿里云 OSS Java SDK：上传/列出/下载素材图片 -->
+        <dependency>
+            <groupId>com.aliyun.oss</groupId>
+            <artifactId>aliyun-sdk-oss</artifactId>
+            <version>3.18.1</version>
+        </dependency>
+
+        <!-- JAXB（Java 17 已移除，OSS SDK 在签名计算等环节仍需要） -->
+        <dependency>
+            <groupId>jakarta.xml.bind</groupId>
+            <artifactId>jakarta.xml.bind-api</artifactId>
+            <version>4.0.2</version>
+        </dependency>
+
+        <!-- 通用工具包底层（业务代码不直接使用，统一走 common.utils 封装层） -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.14.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-restclient-test</artifactId>
@@ -87,6 +121,13 @@
         <dependency>
             <groupId>io.agentscope</groupId>
             <artifactId>agentscope-extensions-model-dashscope</artifactId>
+            <version>2.0.1</version>
+        </dependency>
+
+        <!-- 模型扩展：OpenAI 兼容端点（DeepSeek flash / Kimi / Moonshot 等） -->
+        <dependency>
+            <groupId>io.agentscope</groupId>
+            <artifactId>agentscope-extensions-model-openai</artifactId>
             <version>2.0.1</version>
         </dependency>
 
