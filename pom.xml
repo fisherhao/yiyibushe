@@ -80,11 +80,12 @@
             <version>4.0.2</version>
         </dependency>
 
-        <!-- 通用工具包底层（业务代码不直接使用，统一走 common.util 下 XxxUtilExt 封装层） -->
+        <!-- 通用工具包底层（业务代码不直接使用，统一走 common.util 下 XxxUtilExt 封装层）。
+             3.18.0 修复 CVE-2025-48924（ClassUtils.getClass 非受控递归，CVSS 5.3），不得低于该版本。 -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.14.0</version>
+            <version>3.18.0</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
