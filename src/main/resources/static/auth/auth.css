@@ -1,0 +1,4 @@
+/* ========== 认证域（登录 / 注册）专用样式 ========== */
+.auth-box { max-width: 380px; margin: 80px auto; }
+.link { text-align: center; margin-top: 14px; font-size: 14px; }
+.link a { color: #6c5ce7; text-decoration: none; }

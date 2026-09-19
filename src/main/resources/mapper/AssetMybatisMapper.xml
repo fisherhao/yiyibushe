@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 图片素材表 asset 的 SQL：主键 id 无语义、由发号器生成；业务素材 ID 为 asset_id（18 位）；
+     url 落图片链接（本地路径，暂无 OSS）、category 绑衣物类别、user_id 绑归属人、
+     gmt_expire 为图片过期时间（到期后列表不再展示）；
+     gmt_create 数据库默认填充、gmt_modify 更新时数据库自动刷新 -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.AssetMybatisMapper">
+
+    <!-- 素材结果映射 -->
+    <resultMap id="assetResultMap" type="com.dayu.yiyibushe.dao.mybatis.AssetPO">
+        <id property="id" column="id"/>
+        <result property="assetId" column="asset_id"/>
+        <result property="userId" column="user_id"/>
+        <result property="category" column="category"/>
+        <result property="url" column="url"/>
+        <result property="objectKey" column="object_key"/>
+        <result property="fileName" column="file_name"/>
+        <result property="fileSize" column="file_size"/>
+        <result property="gmtExpire" column="gmt_expire"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModify" column="gmt_modify"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="selectColumns">
+        id, asset_id, user_id, category, url, object_key, file_name, file_size, gmt_expire, gmt_create, gmt_modify
+    </sql>
+
+    <!-- 新增素材记录：主键 id 由数据库自增（不写）；业务 asset_id 由 IdUtil 在外部赋值（gmt_expire 由服务层计算）；
+         gmt_create / gmt_modify 不写，由数据库默认值填充 -->
+    <insert id="insert">
+        INSERT INTO asset (asset_id, user_id, category, url, object_key, file_name, file_size, gmt_expire)
+        VALUES (#{assetId}, #{userId}, #{category}, #{url}, #{objectKey}, #{fileName}, #{fileSize}, #{gmtExpire})
+    </insert>
+
+    <!-- 按归属用户与分类查询未过期素材：先上传的在前 -->
+    <select id="selectByUserIdAndCategory" resultMap="assetResultMap">
+        SELECT
+        <include refid="selectColumns"/>
+        FROM asset
+        WHERE user_id = #{userId}
+          AND category = #{category}
+          AND gmt_expire &gt; NOW()
+        ORDER BY gmt_create ASC
+    </select>
+
+    <!-- 统计某用户某分类下未过期的素材数量 -->
+    <select id="countByUserIdAndCategory" resultType="int">
+        SELECT COUNT(*)
+        FROM asset
+        WHERE user_id = #{userId}
+          AND category = #{category}
+          AND gmt_expire &gt; NOW()
+    </select>
+
+    <!-- 按业务素材 ID 查询单条（删除时校验归属用） -->
+    <select id="selectByAssetId" resultMap="assetResultMap">
+        SELECT
+        <include refid="selectColumns"/>
+        FROM asset
+        WHERE asset_id = #{assetId}
+        LIMIT 1
+    </select>
+
+    <!-- 按业务素材 ID 删除 -->
+    <delete id="deleteByAssetId">
+        DELETE FROM asset
+        WHERE asset_id = #{assetId}
+    </delete>
+</mapper>

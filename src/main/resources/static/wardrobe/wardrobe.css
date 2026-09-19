@@ -1,0 +1,38 @@
+/* ========== 衣橱域专用样式：顶栏 / 分类标签 / 素材网格 / 上传行 / 结果区 ========== */
+.topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.topbar .user { font-size: 14px; color: #636e72; }
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tabs button {
+    width: auto;
+    padding: 7px 16px;
+    background: #fff;
+    color: #2d3436;
+    border: 1px solid #dfe6e9;
+    font-size: 13px;
+}
+.tabs button.active { background: #6c5ce7; color: #fff; border-color: #6c5ce7; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+.grid .item { position: relative; }
+.grid img {
+    width: 100%;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+.grid .remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.55);
+    font-size: 12px;
+    line-height: 22px;
+}
+.upload-row { display: flex; gap: 10px; align-items: center; margin-bottom: 14px; }
+.upload-row input[type=file] { margin: 0; }
+.result-box { margin-top: 16px; text-align: center; }
+.result-box img { max-width: 100%; border-radius: 10px; }

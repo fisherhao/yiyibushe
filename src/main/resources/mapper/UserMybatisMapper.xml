@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 用户表 users 的 SQL：主键 id 数据库自增（insert 不写 id）；业务用户 ID 为 user_id；
+     gmt_create 数据库默认填充、gmt_modify 更新时数据库自动刷新 -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.UserMybatisMapper">
+
+    <!-- 通用查询列：开启驼峰映射后 gmt_create 自动映射 gmtCreate -->
+    <sql id="selectColumns">
+        id, user_id, username, password, nickname, status, gmt_create, gmt_modify
+    </sql>
+
+    <!-- 按业务用户 ID 查询 -->
+    <select id="selectByUserId" resultType="com.dayu.yiyibushe.dao.po.UserPO">
+        SELECT <include refid="selectColumns"/>
+        FROM users
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- 按用户名查询 -->
+    <select id="selectByUsername" resultType="com.dayu.yiyibushe.dao.po.UserPO">
+        SELECT <include refid="selectColumns"/>
+        FROM users
+        WHERE username = #{username}
+    </select>
+
+    <!-- 查询全部用户（按业务用户 ID 升序） -->
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.UserPO">
+        SELECT <include refid="selectColumns"/>
+        FROM users
+        ORDER BY user_id
+    </select>
+
+    <!-- 新增用户：主键 id 由数据库自增（不写）；业务 user_id 由 IdUtil 在外部赋值；时间列不写，由数据库默认值填充 -->
+    <insert id="insert">
+        INSERT INTO users (user_id, username, password, nickname, status)
+        VALUES (#{userId}, #{username}, #{password}, #{nickname}, #{status})
+    </insert>
+
+    <!-- 按业务用户 ID 更新：gmt_modify 不写，由 ON UPDATE CURRENT_TIMESTAMP 自动刷新 -->
+    <update id="updateByUserId">
+        UPDATE users
+        SET username = #{username},
+            password = #{password},
+            nickname = #{nickname},
+            status   = #{status}
+        WHERE user_id = #{userId}
+    </update>
+
+    <!-- 按业务用户 ID 删除 -->
+    <delete id="deleteByUserId">
+        DELETE FROM users
+        WHERE user_id = #{userId}
+    </delete>
+
+</mapper>

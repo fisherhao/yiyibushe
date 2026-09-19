@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 节点执行记录表 task_node 的 SQL：主键 id 无语义、由发号器生成；业务节点记录 ID 为 task_node_id；
+     gmt_create 数据库默认填充、gmt_modify 更新时数据库自动刷新；
+     重试次数与节点执行/重试时间统一由 flow_task 控制，本表不存重试/等待字段 -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.TaskNodeMybatisMapper">
+
+    <!-- 节点记录结果映射：output 与 ext_info 用 JSON TypeHandler 反序列化回 Map -->
+    <resultMap id="taskNodeResultMap" type="com.dayu.yiyibushe.dao.mybatis.TaskNodePO">
+        <id property="id" column="id"/>
+        <result property="taskNodeId" column="task_node_id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="nodeType" column="node_type"/>
+        <result property="nodeOrder" column="node_order"/>
+        <result property="status" column="status"/>
+        <result property="output" column="output"
+                typeHandler="com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler"/>
+        <result property="failMessage" column="fail_message"/>
+        <result property="extInfo" column="ext_info"
+                typeHandler="com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler"/>
+        <result property="gmtCreate" column="gmt_create"/>
+        <result property="gmtModify" column="gmt_modify"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="selectColumns">
+        id, task_node_id, task_id, node_type, node_order, status,
+        output, fail_message, ext_info, gmt_create, gmt_modify
+    </sql>
+
+    <!-- 新增节点记录：主键 id 由数据库自增（不写）；业务 task_node_id 由 IdUtil 在外部赋值；时间列不写，由数据库默认值填充 -->
+    <insert id="insert">
+        INSERT INTO task_node (task_node_id, task_id, node_type, node_order, status,
+                               output, fail_message, ext_info)
+        VALUES (#{taskNodeId}, #{taskId}, #{nodeType}, #{nodeOrder}, #{status},
+                #{output,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler},
+                #{failMessage},
+                #{extInfo,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler})
+    </insert>
+
+    <!-- 按业务节点记录 ID 更新：gmt_modify 由 ON UPDATE CURRENT_TIMESTAMP 自动刷新 -->
+    <update id="updateByTaskNodeId">
+        UPDATE task_node
+        SET task_id      = #{taskId},
+            node_type    = #{nodeType},
+            node_order   = #{nodeOrder},
+            status       = #{status},
+            output       = #{output,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler},
+            fail_message = #{failMessage},
+            ext_info     = #{extInfo,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler}
+        WHERE task_node_id = #{taskNodeId}
+    </update>
+
+    <!-- 按所属任务 ID 查询全部节点记录（按 node_order 升序 = 执行顺序） -->
+    <select id="selectByTaskId" resultMap="taskNodeResultMap">
+        SELECT <include refid="selectColumns"/>
+        FROM task_node
+        WHERE task_id = #{taskId}
+        ORDER BY node_order
+    </select>
+
+    <!-- 清空全部节点记录（测试清理用） -->
+    <delete id="deleteAll">
+        DELETE FROM task_node
+    </delete>
+
+</mapper>

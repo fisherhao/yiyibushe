@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 任务主表 flow_task 的 SQL：主键 id 无语义、由发号器生成；业务任务 ID 为 task_id；
+     gmt_create 数据库默认填充、gmt_modify 更新时数据库自动刷新 -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.FlowTaskMybatisMapper">
+
+    <!-- 任务结果映射：task_context 与 ext_info 用 JSON TypeHandler 反序列化回 Map -->
+    <resultMap id="flowTaskResultMap" type="com.dayu.yiyibushe.infra.flowtask.FlowTask">
+        <id property="id" column="id"/>
+        <result property="taskId" column="task_id"/>
+        <result property="status" column="status"/>
+        <result property="priority" column="priority"/>
+        <result property="gmtFire" column="gmt_fire"/>
+        <result property="retryCount" column="retry_count"/>
+        <result property="maxRetry" column="max_retry"/>
+        <result property="retryStrategyCode" column="retry_strategy_code"/>
+        <result property="currentNodeType" column="current_node_type"/>
+        <result property="taskContext" column="task_context"
+                typeHandler="com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler"/>
+        <result property="extInfo" column="ext_info"
+                typeHandler="com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler"/>
+    </resultMap>
+
+    <!-- 通用查询列 -->
+    <sql id="selectColumns">
+        id, task_id, status, priority, gmt_fire, retry_count, max_retry,
+        retry_strategy_code, current_node_type, task_context, ext_info
+    </sql>
+
+    <!-- 新增任务：主键 id 由数据库自增（不写）；业务 task_id 由 IdUtil 在外部赋值；task_context 用 JSON TypeHandler；时间列不写，由数据库默认值填充 -->
+    <insert id="insert">
+        INSERT INTO flow_task (task_id, status, priority, gmt_fire, retry_count,
+                               max_retry, retry_strategy_code, current_node_type, task_context, ext_info)
+        VALUES (#{taskId}, #{status}, #{priority}, #{gmtFire}, #{retryCount},
+                #{maxRetry}, #{retryStrategyCode}, #{currentNodeType},
+                #{taskContext,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler},
+                #{extInfo,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler})
+    </insert>
+
+    <!-- 按业务任务 ID 更新任务：gmt_modify 不写，由 ON UPDATE CURRENT_TIMESTAMP 自动刷新 -->
+    <update id="updateByTaskId">
+        UPDATE flow_task
+        SET status              = #{status},
+            priority            = #{priority},
+            gmt_fire            = #{gmtFire},
+            retry_count         = #{retryCount},
+            max_retry           = #{maxRetry},
+            retry_strategy_code = #{retryStrategyCode},
+            current_node_type   = #{currentNodeType},
+            task_context        = #{taskContext,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler},
+            ext_info            = #{extInfo,jdbcType=VARCHAR,typeHandler=com.dayu.yiyibushe.dao.mybatis.JsonMapTypeHandler}
+        WHERE task_id = #{taskId}
+    </update>
+
+    <!-- 按业务任务 ID 查询任务 -->
+    <select id="selectByTaskId" resultMap="flowTaskResultMap">
+        SELECT <include refid="selectColumns"/>
+        FROM flow_task
+        WHERE task_id = #{taskId}
+    </select>
+
+    <!-- 清空全部任务（测试清理用） -->
+    <delete id="deleteAll">
+        DELETE FROM flow_task
+    </delete>
+
+</mapper>

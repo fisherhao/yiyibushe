@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>登录 · 依依不舍</title>
+    <link rel="stylesheet" href="/common/common.css">
+    <link rel="stylesheet" href="/auth/auth.css">
+</head>
+<body>
+<div class="container">
+    <div class="card auth-box">
+        <h1>依依不舍</h1>
+        <p class="subtitle">AI 虚拟试衣</p>
+        <form id="loginForm">
+            <input type="text" id="username" placeholder="用户名" required>
+            <input type="password" id="password" placeholder="密码" required>
+            <button type="submit">登录</button>
+            <div class="message" id="message"></div>
+        </form>
+        <div class="link">忘记密码？<a href="/auth/reset-password.html">找回密码</a></div>
+        <div class="link">还没有账号？<a href="/auth/register.html">去注册</a></div>
+    </div>
+</div>
+<script src="/common/http.js"></script>
+<script src="/auth/login.js"></script>
+</body>
+</html>

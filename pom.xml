@@ -8,7 +8,7 @@
         <version>4.0.8</version>
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
-    <groupId>com.yiyibushe</groupId>
+    <groupId>com.dayu.yiyibushe</groupId>
     <artifactId>yiyibushe</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>yiyibushe</name>
@@ -28,6 +28,10 @@
     </scm>
     <properties>
         <java.version>17</java.version>
+        <!-- 全项目统一 UTF-8，避免中文注释/控制台输出在不同平台乱码 -->
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
     </properties>
     <dependencies>
         <dependency>
@@ -76,7 +80,7 @@
             <version>4.0.2</version>
         </dependency>
 
-        <!-- 通用工具包底层（业务代码不直接使用，统一走 common.utils 封装层） -->
+        <!-- 通用工具包底层（业务代码不直接使用，统一走 common.util 下 XxxUtilExt 封装层） -->
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
@@ -149,6 +153,37 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- MySQL 驱动：Spring Boot 官方推荐仅以 runtime 引入，运行期由连接池加载。
+             版本交 Spring Boot BOM 管理。 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- MyBatis Starter（XML 形式 Mapper）：
+             4.0.x 是官方对 Spring Boot 4.x 的适配版本（内含 mybatis 3.5 / mybatis-spring 4.0），
+             并自带 spring-boot-starter-jdbc 传递依赖——自动装配 HikariCP 连接池与 DataSource，
+             无需再单独引 jdbc starter。版本独立于 BOM，需显式指定。 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
+        <!-- Flyway 数据库版本管理（Boot 4 起自动配置独立为 starter）：
+             迁移脚本位于 db/migration，命名 VyyyyMMdd_HHmm__描述.sql，
+             应用启动时自动执行所有未应用的脚本。版本交 Spring Boot BOM 管理。 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-flyway</artifactId>
+        </dependency>
+        <!-- Flyway 对 MySQL 的方言支持（Flyway 10 起数据库支持独立成模块） -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-mysql</artifactId>
         </dependency>
     </dependencies>
 

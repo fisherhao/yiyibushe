@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>我的衣橱 · 依依不舍</title>
+    <link rel="stylesheet" href="/common/common.css">
+    <link rel="stylesheet" href="/wardrobe/wardrobe.css">
+</head>
+<body>
+<div class="container">
+    <div class="topbar">
+        <h1>我的衣橱</h1>
+        <div>
+            <span class="user" id="currentUser"></span>
+            <button class="secondary" id="logoutBtn" style="margin-left:10px;">退出登录</button>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>套装生成</h2>
+        <p class="hint">描述风格、场景和想要的效果；未指定衣物时自动选用各分类最新一件，没有人物图时按提示词生成。</p>
+        <textarea id="prompt" placeholder="例如：周末海边度假，清新自然风格，全身照，阳光明媚"></textarea>
+        <button id="generateBtn">生成穿衣图片</button>
+        <div class="message" id="generateMessage"></div>
+        <div class="result-box" id="resultBox"></div>
+    </div>
+
+    <div class="card">
+        <h2>我的图片（每类最多 10 张）</h2>
+        <div class="tabs" id="categoryTabs"></div>
+        <div class="upload-row">
+            <input type="file" id="fileInput" accept="image/*" multiple>
+            <button id="uploadBtn" style="width:auto;padding:9px 20px;">上传到当前分类（可多选，最多 10 张）</button>
+            <span class="hint" id="countHint"></span>
+        </div>
+        <div class="message" id="assetMessage"></div>
+        <div class="grid" id="assetGrid"></div>
+    </div>
+
+    <div class="card">
+        <h2>修改密码</h2>
+        <p class="hint">修改成功后，本账号在所有设备上的登录都会失效，需要重新登录。</p>
+        <div class="upload-row">
+            <input type="password" id="oldPassword" placeholder="原密码">
+            <input type="password" id="newPassword" placeholder="新密码">
+            <button id="changePasswordBtn" style="width:auto;padding:9px 20px;">确认修改</button>
+        </div>
+        <div class="message" id="passwordMessage"></div>
+    </div>
+</div>
+
+<script src="/common/http.js"></script>
+<script src="/wardrobe/wardrobe.js"></script>
+</body>
+</html>

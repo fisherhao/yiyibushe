@@ -1,0 +1,84 @@
+package com.dayu.yiyibushe.common.id;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/**
+ * 说明：IdUtil 号段 ID 生成工具集成测试（真实连库 MySQL）。
+ * <p>
+ * 验证三条核心性质：
+ * <ol>
+ *   <li>生成的 ID 固定 18 位、为正数；</li>
+ *   <li>同一号段内连续取号序号递增 1（时间部分不变，仅序号 +1）；</li>
+ *   <li>序号部分随调用逐步递增，且序号与时间部分解耦组合。</li>
+ * </ol>
+ * 每个用例前把 id_alloc 的 common 行 max_id 重置为 0，保证取段行为确定、可重复。
+ *
+ * @author Witty·Kid Fisher
+ * @version 0.0.1
+ */
+@SpringBootTest
+class IdUtilIntegrationTest {
+
+    /** 默认业务标识对应的号段行的重置 SQL */
+    private static final String RESET_COMMON_SEGMENT_SQL =
+            "UPDATE id_alloc SET max_id = 0 WHERE biz_tag = 'common'";
+
+    /** 默认业务标识 */
+    private static final String BIZ_TYPE_COMMON = "common";
+
+    @Autowired
+    private IdUtil idUtil;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    /**
+     * 每个用例前重置 common 号段，保证取段行为确定
+     */
+    @BeforeEach
+    void resetCommonSegment() {
+        jdbcTemplate.update(RESET_COMMON_SEGMENT_SQL);
+    }
+
+    /**
+     * 生成的 ID 应始终为 18 位正数（时间部分 8 位 + 序号部分 10 位），且无前导零丢位
+     */
+    @Test
+    void nextIdShouldReturnPositive18DigitId() {
+        long id = idUtil.nextId();
+        assertTrue(id > 0, "ID 应为正数");
+        assertEquals(18, String.valueOf(id).length(), "ID 应固定为 18 位");
+    }
+
+    /**
+     * 同一号段内连续取号两次：时间部分不变、序号部分递增，整体恰好相差 1
+     */
+    @Test
+    void nextIdShouldIncreaseSeqWithinSameSegmentByOne() {
+        long firstId = idUtil.nextId();
+        long secondId = idUtil.nextId();
+        // 同段内时间部分一致、序号 +1，因此整体恰好递增 1
+        assertEquals(firstId + 1, secondId, "同段内连续取号应恰好递增 1");
+    }
+
+    /**
+     * 连续多次取号：序号部分整体保持严格递增（时间部分在同一小时内保持一致，ID 单调递增）
+     */
+    @Test
+    void nextIdShouldBeMonotonicallyIncreasing() {
+        int batch = 50;
+        long previousId = 0L;
+        for (int index = 0; index < batch; index++) {
+            long currentId = idUtil.nextId(BIZ_TYPE_COMMON);
+            assertTrue(currentId > previousId, "ID 应严格递增");
+            previousId = currentId;
+        }
+    }
+}

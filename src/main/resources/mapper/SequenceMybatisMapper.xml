@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 发号序列表 sequence 的 SQL：取号三步（锁行读 → 无则插入初始行 → 有则累加步长），须在同一事务内执行；
+     主键 id 数据库自增（insert 不写）；name 为业务唯一标识 -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.SequenceMybatisMapper">
+
+    <!-- 事务内锁行读取当前值：行不存在返回 null，由调用方决定插入初始行 -->
+    <select id="selectCurrentValueForUpdate" resultType="java.lang.Long">
+        SELECT current_value
+        FROM `sequence`
+        WHERE name = #{sequenceName}
+        FOR UPDATE
+    </select>
+
+    <!-- 插入序列初始行：初始值即首个发出的号码；id 由数据库自增（不写） -->
+    <insert id="insertInitial">
+        INSERT INTO `sequence` (name, current_value, increment_step)
+        VALUES (#{sequenceName}, #{initialValue}, #{incrementStep})
+    </insert>
+
+    <!-- 累加步长 -->
+    <update id="addStep">
+        UPDATE `sequence`
+        SET current_value = current_value + #{incrementStep}
+        WHERE name = #{sequenceName}
+    </update>
+
+</mapper>
