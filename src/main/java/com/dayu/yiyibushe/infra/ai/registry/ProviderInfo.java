@@ -6,11 +6,13 @@ import com.dayu.yiyibushe.common.util.StringUtilExt;
  * 厂商信息：集中维护各模型厂商的默认端点、对话路径与通信协议。
  * <p>
  * 业务侧做「免注册直连」时，只需提供厂商名 + appKey/appSecret + 模型名，
- * 由本枚举补齐端点信息。未来厂商增多（7-8 个甚至上百个模型），
- * 可将本枚举数据迁移到 MySQL/Redis，而调用方式不变。
+ * 由本枚举补齐端点信息。模型调用统一走 AgentScope（OpenAI 兼容端点 +
+ * DashScope 原生扩展），本枚举为 {@link AgentScopeModelFactory} 提供端点元数据。
+ * 未来厂商增多（7-8 个甚至上百个模型），可将本枚举数据迁移到 MySQL/Redis，
+ * 而调用方式不变。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.1
+ * @version 0.0.2
  */
 public enum ProviderInfo {
 
@@ -34,13 +36,13 @@ public enum ProviderInfo {
     DOUBAO("doubao", "https://ark.cn-beijing.volces.com/api/v3",
             "/chat/completions", Protocol.OPENAI_COMPATIBLE),
 
-    /** Anthropic Claude */
+    /** Anthropic Claude（走官方 OpenAI 兼容端点，密钥仍为 sk-ant-*） */
     CLAUDE("claude", "https://api.anthropic.com",
-            "/v1/messages", Protocol.CLAUDE),
+            "/v1/chat/completions", Protocol.OPENAI_COMPATIBLE),
 
-    /** Google Gemini */
+    /** Google Gemini（走官方 OpenAI 兼容端点） */
     GEMINI("gemini", "https://generativelanguage.googleapis.com",
-            null, Protocol.GEMINI),
+            "/v1beta/openai/chat/completions", Protocol.OPENAI_COMPATIBLE),
 
     /** Moonshot Kimi（OpenAI 兼容） */
     MOONSHOT("moonshot", "https://api.moonshot.cn",
@@ -78,17 +80,14 @@ public enum ProviderInfo {
     }
 
     /**
-     * 连接协议：工厂按协议选适配器，新增协议时扩展本枚举。
+     * 连接协议：描述厂商端点协议形态（模型调用统一由 AgentScope 承担，
+     * 本枚举作为元数据保留，便于后续按协议做能力扩展）。
      */
     public enum Protocol {
         /** OpenAI 兼容协议（绝大多数国内外厂商支持） */
         OPENAI_COMPATIBLE,
         /** DashScope 原生协议（异步任务 + X-DashScope-Async） */
-        DASHSCOPE_NATIVE,
-        /** Anthropic Messages 协议 */
-        CLAUDE,
-        /** Google Gemini 协议 */
-        GEMINI
+        DASHSCOPE_NATIVE
     }
 
     /**

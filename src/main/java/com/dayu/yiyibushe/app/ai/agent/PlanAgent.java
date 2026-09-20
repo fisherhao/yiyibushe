@@ -1,10 +1,11 @@
 package com.dayu.yiyibushe.app.ai.agent;
 
-import com.dayu.yiyibushe.infra.ai.connection.ModelConnectionFactory;
+import com.dayu.yiyibushe.infra.ai.connection.AgentScopeModelFactory;
 import com.dayu.yiyibushe.domain.ai.execution.ExecutionContext;
 import com.dayu.yiyibushe.domain.ai.execution.ExecutionResult;
 import com.dayu.yiyibushe.infra.ai.registry.ModelRegistry;
 import com.dayu.yiyibushe.infra.ai.agent.BaseAiAgent;
+import io.agentscope.core.state.AgentStateStore;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -14,7 +15,7 @@ import java.util.Objects;
  * 规划 Agent：分析用户需求，输出可执行的穿衣搭配方案与步骤。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.1
+ * @version 0.0.2
  */
 @Component
 public class PlanAgent extends BaseAiAgent {
@@ -28,11 +29,14 @@ public class PlanAgent extends BaseAiAgent {
      *
      * @param modelRegistry
      *     模型注册表
-     * @param connectionFactory
-     *     连接工厂
+     * @param modelFactory
+     *     AgentScope 模型工厂
+     * @param stateStore
+     *     AgentScope 会话状态存储
      */
-    public PlanAgent(ModelRegistry modelRegistry, ModelConnectionFactory connectionFactory) {
-        super("plan-agent", "deepseek-chat", SYSTEM_PROMPT, modelRegistry, connectionFactory);
+    public PlanAgent(ModelRegistry modelRegistry, AgentScopeModelFactory modelFactory,
+            AgentStateStore stateStore) {
+        super("plan-agent", "deepseek-chat", SYSTEM_PROMPT, modelRegistry, modelFactory, stateStore);
     }
 
     /**
