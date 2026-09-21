@@ -2,6 +2,8 @@ package com.dayu.yiyibushe.infra.ai.tool;
 
 import com.dayu.yiyibushe.domain.ai.skill.AiSkill;
 import io.agentscope.core.tool.Toolkit;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -21,6 +23,8 @@ import java.util.List;
 @Configuration
 public class SkillToolkitConfig {
 
+    private static final Logger log = LogUtilExt.getLogger(SkillToolkitConfig.class);
+
     /**
      * 构建 AgentScope 工具箱：收集容器内全部领域技能并注册
      *
@@ -34,7 +38,7 @@ public class SkillToolkitConfig {
         for (AiSkill skill : skills) {
             toolkit.registerAgentTool(new AiSkillToolAdapter(skill));
         }
-        System.out.println("[SkillToolkit] 已注册 AgentScope 技能 " + skills.size() + " 个");
+        LogUtilExt.info(log, "[SkillToolkit] 已注册 AgentScope 技能 {0} 个", skills.size());
         return toolkit;
     }
 }

@@ -3,6 +3,8 @@ package com.dayu.yiyibushe.app.task;
 import com.dayu.yiyibushe.infra.flowtask.TaskContext;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeAction;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 
 /**
  * 说明：演示节点 failOnce——首次执行模拟失败，重试后成功，
@@ -16,6 +18,8 @@ import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
  * @version 0.0.4
  */
 public class FailOnceNode implements TaskNodeAction {
+
+    private static final Logger log = LogUtilExt.getLogger(FailOnceNode.class);
 
     /** 节点类型 */
     public static final String NODE_TYPE = "failOnce";
@@ -49,10 +53,10 @@ public class FailOnceNode implements TaskNodeAction {
         int nextCount = (executeCount == null ? 0 : executeCount) + 1;
         context.put(KEY_EXECUTE_COUNT, nextCount);
         if (nextCount == 1) {
-            System.out.println("[FlowTask-演示] failOnce 首次执行失败（模拟）");
+            LogUtilExt.warn(log, "[FlowTask-演示] failOnce 首次执行失败（模拟）");
             return TaskNodeResult.failed(SIMULATED_FIRST_FAILURE);
         }
-        System.out.println("[FlowTask-演示] failOnce 第 " + nextCount + " 次执行成功");
+        LogUtilExt.info(log, "[FlowTask-演示] failOnce 第 {0} 次执行成功", nextCount);
         return TaskNodeResult.success("第二次执行成功");
     }
 }

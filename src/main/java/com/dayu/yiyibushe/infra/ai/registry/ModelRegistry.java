@@ -7,6 +7,8 @@ import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.infra.ai.core.ModelType;
 import jakarta.annotation.PostConstruct;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -26,6 +28,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Component
 public class ModelRegistry {
+
+    private static final Logger log = LogUtilExt.getLogger(ModelRegistry.class);
 
     /**
      * 默认模型定义表（静态占位，未来迁移到 MySQL/Redis）。
@@ -71,7 +75,7 @@ public class ModelRegistry {
     @PostConstruct
     public void init() {
         models.putAll(DEFAULT_MODELS);
-        System.out.println("[ModelRegistry] 已加载 " + CollectionUtilExt.getSize(models) + " 个默认模型");
+        LogUtilExt.info(log, "[ModelRegistry] 已加载 {0} 个默认模型", CollectionUtilExt.getSize(models));
     }
 
     /**

@@ -1,19 +1,22 @@
 package com.dayu.yiyibushe.infra.flowtask;
 
-import com.dayu.yiyibushe.infra.mq.MessageListener;
+import com.dayu.yiyibushe.infra.mq.RocketMqListener;
+import com.dayu.yiyibushe.infra.mq.RocketMqMessageListener;
 import org.springframework.stereotype.Component;
-
-import java.util.Objects;
 
 /**
  * 说明：任务回调消息监听器，把 MQ 里 {@link TaskCallbackMessage} 投递给引擎，
  * 是"外部回调 -> 节点续跑"链路的消费端（自己发送自己消费）。
+ * <p>
+ * 对齐 rocketmq-spring 模型：实现 {@link RocketMqListener} + 标注
+ * {@link RocketMqMessageListener} 声明 topic 与消费组，由 MQ 框架自动注册订阅。
  *
  * @author Witty·Kid Fisher
  * @version 0.0.1
  */
 @Component
-public class TaskCallbackListener implements MessageListener {
+@RocketMqMessageListener(topic = TaskCallbackMessage.TOPIC, consumerGroup = "yiyibushe-task-callback-consumer")
+public class TaskCallbackListener implements RocketMqListener<TaskCallbackMessage> {
 
     private final TaskEngine taskEngine;
 
@@ -28,30 +31,13 @@ public class TaskCallbackListener implements MessageListener {
     }
 
     /**
-     * 声明监听 topic：固定为回调消息 topic
-     *
-     * @return topic 名称
-     */
-    @Override
-    public String getTopic() {
-        return TaskCallbackMessage.TOPIC;
-    }
-
-    /**
-     * 消费回调消息并交给引擎处理，非本框架的消息直接忽略
+     * 消费回调消息并交给引擎处理
      *
      * @param message
-     *     消息体
+     *     任务回调消息
      */
     @Override
-    public void onMessage(Object message) {
-        if (message instanceof TaskCallbackMessage callbackMessage) {
-            taskEngine.callback(callbackMessage.getTaskId());
-            return;
-        }
-        if (Objects.nonNull(message)) {
-            System.out.println("[FlowTask] 忽略非回调消息 type="
-                    + message.getClass().getSimpleName());
-        }
+    public void onMessage(TaskCallbackMessage message) {
+        taskEngine.callback(message.getTaskId());
     }
 }

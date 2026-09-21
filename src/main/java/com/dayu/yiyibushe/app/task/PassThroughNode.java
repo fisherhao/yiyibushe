@@ -3,6 +3,8 @@ package com.dayu.yiyibushe.app.task;
 import com.dayu.yiyibushe.infra.flowtask.TaskContext;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeAction;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 
 /**
  * 说明：演示节点 passThrough——链尾节点，直接成功，用于验证
@@ -14,6 +16,8 @@ import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
  * @version 0.0.4
  */
 public class PassThroughNode implements TaskNodeAction {
+
+    private static final Logger log = LogUtilExt.getLogger(PassThroughNode.class);
 
     /** 节点类型 */
     public static final String NODE_TYPE = "passThrough";
@@ -37,7 +41,7 @@ public class PassThroughNode implements TaskNodeAction {
      */
     @Override
     public TaskNodeResult execute(TaskContext context) {
-        System.out.println("[FlowTask-演示] passThrough 执行成功，链路收口");
+        LogUtilExt.info(log, "[FlowTask-演示] passThrough 执行成功，链路收口");
         return TaskNodeResult.success("passThrough 完成");
     }
 }

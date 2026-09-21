@@ -1,6 +1,8 @@
 package com.dayu.yiyibushe.infra.resource;
 
 import jakarta.annotation.PostConstruct;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -26,6 +28,8 @@ import java.util.stream.Stream;
  */
 @Component
 public class LocalResourceManager {
+
+    private static final Logger log = LogUtilExt.getLogger(LocalResourceManager.class);
 
     /** 素材目录名 */
     public static final String ASSETS_DIR = "assets";
@@ -60,7 +64,7 @@ public class LocalResourceManager {
         } catch (IOException e) {
             throw new UncheckedIOException("初始化本地资源目录失败: " + rootDir, e);
         }
-        System.out.println("[LocalResource] 资源目录: " + rootDir);
+        LogUtilExt.info(log, "[LocalResource] 资源目录: {0}", rootDir);
     }
 
     /**

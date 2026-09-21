@@ -6,6 +6,8 @@ import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.infra.flowtask.retry.RetryStrategy;
 import com.dayu.yiyibushe.infra.flowtask.retry.RetryStrategyRegistry;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,6 +33,8 @@ import java.util.Objects;
  */
 @Component
 public class TaskEngine {
+
+    private static final Logger log = LogUtilExt.getLogger(TaskEngine.class);
 
     /** 引擎内部防御：节点返回空结果时的失败原因 */
     private static final String NODE_RESULT_NULL_MESSAGE = "NODE_RESULT_NULL";
@@ -74,15 +78,13 @@ public class TaskEngine {
         }
         // 状态机硬门槛：只有 INIT 允许开跑
         if (task.getStatus() != FlowTaskStatus.INIT) {
-            System.out.println("[FlowTask] 任务非 INIT 状态被忽略 status=" + task.getStatus()
-                    + " taskId=" + taskId);
+            LogUtilExt.warn(log, "[FlowTask] 任务非 INIT 状态被忽略 status={0} taskId={1}", task.getStatus(), taskId);
             return;
         }
         task.setStatus(FlowTaskStatus.RUNNING);
         touch(task);
         taskStore.save(task);
-        System.out.println("[FlowTask] 任务开始执行 taskId=" + taskId
-                + " 从节点 " + task.getCurrentNodeType() + " 继续");
+        LogUtilExt.info(log, "[FlowTask] 任务开始执行 taskId={0} 从节点 {1} 继续", taskId, task.getCurrentNodeType());
         advanceTask(task, false);
     }
 
@@ -100,13 +102,12 @@ public class TaskEngine {
         }
         FlowTask task = taskStore.findByTaskId(taskId);
         if (Objects.isNull(task)) {
-            System.out.println("[FlowTask] 回调目标任务不存在 taskId=" + taskId);
+            LogUtilExt.warn(log, "[FlowTask] 回调目标任务不存在 taskId={0}", taskId);
             return;
         }
         // 硬门槛：回调只服务执行中的任务
         if (task.getStatus() != FlowTaskStatus.RUNNING) {
-            System.out.println("[FlowTask] 回调被忽略，任务状态=" + task.getStatus()
-                    + " taskId=" + taskId);
+            LogUtilExt.warn(log, "[FlowTask] 回调被忽略，任务状态={0} taskId={1}", task.getStatus(), taskId);
             return;
         }
         advanceTask(task, true);
@@ -139,8 +140,8 @@ public class TaskEngine {
             List<TaskNode> records = task.getNodeRecords();
             int currentIndex = indexOfNodeType(records, task.getCurrentNodeType());
             if (currentIndex < 0 || !records.get(currentIndex).isWaitingCallback()) {
-                System.out.println("[FlowTask] 回调被忽略，当前节点不在待回调状态 nodeType="
-                        + task.getCurrentNodeType() + " taskId=" + task.getTaskId());
+                LogUtilExt.warn(log, "[FlowTask] 回调被忽略，当前节点不在待回调状态 nodeType={0} taskId={1}",
+                        task.getCurrentNodeType(), task.getTaskId());
                 return;
             }
         }
@@ -171,16 +172,16 @@ public class TaskEngine {
                 record.setStatus(TaskNodeStatus.RUNNING);
                 touch(task);
                 taskStore.save(task);
-                System.out.println("[FlowTask] 收到回调，节点开始处理 nodeType=" + record.getNodeType()
-                        + " taskId=" + task.getTaskId());
+                LogUtilExt.info(log, "[FlowTask] 收到回调，节点开始处理 nodeType={0} taskId={1}",
+                        record.getNodeType(), task.getTaskId());
                 result = invokeReceipt(node, context);
                 if (Objects.isNull(result)) {
                     // 节点未实现 receipt（不支持回调），回 WAIT 继续等
                     record.setStatus(TaskNodeStatus.WAIT);
                     touch(task);
                     taskStore.save(task);
-                    System.out.println("[FlowTask] 节点不支持回调，继续等待 nodeType="
-                            + record.getNodeType() + " taskId=" + task.getTaskId());
+                    LogUtilExt.info(log, "[FlowTask] 节点不支持回调，继续等待 nodeType={0} taskId={1}",
+                            record.getNodeType(), task.getTaskId());
                     return;
                 }
             } else {
@@ -204,7 +205,7 @@ public class TaskEngine {
         task.setStatus(FlowTaskStatus.SUCCESS);
         touch(task);
         taskStore.save(task);
-        System.out.println("[FlowTask] 任务执行成功 taskId=" + task.getTaskId());
+        LogUtilExt.info(log, "[FlowTask] 任务执行成功 taskId={0}", task.getTaskId());
     }
 
     /**
@@ -268,18 +269,17 @@ public class TaskEngine {
             task.setGmtFire(System.currentTimeMillis() + retryIntervalMillis);
             touch(task);
             taskStore.save(task);
-            System.out.println("[FlowTask] 节点失败待重试 nodeType=" + record.getNodeType()
-                    + " taskId=" + task.getTaskId() + " 已重试次数=" + task.getRetryCount()
-                    + "/" + task.getMaxRetry() + " 原因=" + record.getFailMessage()
-                    + " 已回 INIT，下次从节点 " + task.getCurrentNodeType() + " 继续执行，可触发时间="
-                    + task.getGmtFire());
+            LogUtilExt.warn(log, "[FlowTask] 节点失败待重试 nodeType={0} taskId={1} 已重试次数={2}/{3} 原因={4} 已回 INIT，"
+                            + "下次从节点 {0} 继续执行，可触发时间={1}",
+                    record.getNodeType(), task.getTaskId(), task.getRetryCount(), task.getMaxRetry(),
+                    record.getFailMessage(), task.getCurrentNodeType(), task.getGmtFire());
             return;
         }
         task.setStatus(FlowTaskStatus.FAILED);
         touch(task);
         taskStore.save(task);
-        System.out.println("[FlowTask] 任务最终失败（重试预算耗尽）taskId=" + task.getTaskId()
-                + " 失败节点=" + record.getNodeType() + " 原因=" + record.getFailMessage());
+        LogUtilExt.error(log, "[FlowTask] 任务最终失败（重试预算耗尽）taskId={0} 失败节点={1} 原因={2}",
+                task.getTaskId(), record.getNodeType(), record.getFailMessage());
     }
 
     /**
@@ -382,8 +382,7 @@ public class TaskEngine {
         try {
             return node.execute(context);
         } catch (Exception e) {
-            System.out.println("[FlowTask] 节点 execute 异常 nodeType=" + node.getNodeType()
-                    + " error=" + e.getMessage());
+            LogUtilExt.error(log, "[FlowTask] 节点 execute 异常 nodeType={0}", node.getNodeType(), e);
             return TaskNodeResult.failed(node.getClass().getSimpleName() + ": "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
         }
@@ -402,8 +401,7 @@ public class TaskEngine {
         try {
             return node.receipt(context);
         } catch (Exception e) {
-            System.out.println("[FlowTask] 节点 receipt 异常 nodeType=" + node.getNodeType()
-                    + " error=" + e.getMessage());
+            LogUtilExt.error(log, "[FlowTask] 节点 receipt 异常 nodeType={0}", node.getNodeType(), e);
             return TaskNodeResult.failed(node.getClass().getSimpleName() + ": "
                     + e.getClass().getSimpleName() + ": " + e.getMessage());
         }

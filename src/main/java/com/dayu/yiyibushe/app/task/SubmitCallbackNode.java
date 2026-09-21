@@ -3,6 +3,8 @@ package com.dayu.yiyibushe.app.task;
 import com.dayu.yiyibushe.infra.flowtask.TaskContext;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeAction;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 
 /**
  * 说明：演示节点 submitCallback——模拟"提交外部系统后等待回调"的异步节点。
@@ -15,6 +17,8 @@ import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
  * @version 0.0.4
  */
 public class SubmitCallbackNode implements TaskNodeAction {
+
+    private static final Logger log = LogUtilExt.getLogger(SubmitCallbackNode.class);
 
     /** 演示任务类型（三个 load 节点共用，由编排处声明） */
     public static final String TASK_TYPE = "LOAD_DEMO";
@@ -41,7 +45,7 @@ public class SubmitCallbackNode implements TaskNodeAction {
      */
     @Override
     public TaskNodeResult execute(TaskContext context) {
-        System.out.println("[FlowTask-演示] submitCallback 已提交外部系统，等待回调");
+        LogUtilExt.info(log, "[FlowTask-演示] submitCallback 已提交外部系统，等待回调");
         return TaskNodeResult.waiting();
     }
 
@@ -54,7 +58,7 @@ public class SubmitCallbackNode implements TaskNodeAction {
      */
     @Override
     public TaskNodeResult receipt(TaskContext context) {
-        System.out.println("[FlowTask-演示] submitCallback 收到回调，处理完成");
+        LogUtilExt.info(log, "[FlowTask-演示] submitCallback 收到回调，处理完成");
         return TaskNodeResult.success("回调处理完成");
     }
 }

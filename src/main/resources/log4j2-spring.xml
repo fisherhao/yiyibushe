@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Log4j2 配置（log4j2-spring.xml：由 Spring Boot 加载，早于业务日志输出）。
+     业务代码统一走 SLF4J 门面（org.slf4j.Logger），本文件只决定落地实现的行为。 -->
+<Configuration status="WARN">
+
+    <Appenders>
+        <!-- 控制台输出：日常开发主要看这里 -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- 滚动文件输出：按天 + 单文件 50MB 滚动，压缩归档最多保留 30 个 -->
+        <RollingFile name="RollingFile"
+                     fileName="logs/yiyibushe.log"
+                     filePattern="logs/yiyibushe-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- 项目内日志：info 起步；需要排查细节时临时改为 debug -->
+        <Logger name="com.dayu.yiyibushe" level="info"/>
+
+        <!-- 第三方框架日志收敛为 warn，避免启动时刷屏 -->
+        <Logger name="org.springframework" level="warn"/>
+        <Logger name="org.apache" level="warn"/>
+        <Logger name="io.agentscope" level="info"/>
+
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="RollingFile"/>
+        </Root>
+    </Loggers>
+
+</Configuration>

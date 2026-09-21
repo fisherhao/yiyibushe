@@ -4,6 +4,8 @@ import com.dayu.yiyibushe.common.exception.BizErrorCode;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.SystemErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -25,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class RetryStrategyRegistry {
 
+    private static final Logger log = LogUtilExt.getLogger(RetryStrategyRegistry.class);
+
     /** 策略 code -> 策略实现 */
     private final Map<String, RetryStrategy> strategyMap = new ConcurrentHashMap<>();
 
@@ -44,7 +48,7 @@ public class RetryStrategyRegistry {
         for (RetryStrategy strategy : strategies) {
             if (Objects.isNull(strategy) || StringUtilExt.isBlank(strategy.getCode())) {
                 // 策略 code 是框架契约，为空只可能是实现错误，跳过并提示
-                System.out.println("[FlowTask] 忽略 code 为空的重试策略");
+                LogUtilExt.warn(log, "[FlowTask] 忽略 code 为空的重试策略");
                 continue;
             }
             if (Objects.nonNull(strategyMap.put(strategy.getCode(), strategy))) {
@@ -54,7 +58,7 @@ public class RetryStrategyRegistry {
         this.defaultStrategy = strategyMap.get(defaultCode);
         if (Objects.isNull(this.defaultStrategy)) {
             // 默认策略配置错误属于系统配置问题，启动直接失败暴露问题
-            System.out.println("[FlowTask] 默认重试策略不存在 defaultCode=" + defaultCode);
+            LogUtilExt.error(log, "[FlowTask] 默认重试策略不存在 defaultCode={0}", defaultCode);
             throw new BizException(SystemErrorCode.SYSTEM_ERROR);
         }
     }

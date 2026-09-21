@@ -4,6 +4,8 @@ import com.dayu.yiyibushe.common.exception.BizErrorCode;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
  * @version 0.0.4
  */
 public abstract class TaskNodeStrategy {
+
+    private static final Logger log = LogUtilExt.getLogger(TaskNodeStrategy.class);
 
     /** 任务类型 -> 有序节点动作链（数组顺序即执行顺序） */
     private final Map<String, List<TaskNodeAction>> chainMap = new ConcurrentHashMap<>();
@@ -55,8 +59,7 @@ public abstract class TaskNodeStrategy {
         }
         checkNodeTypeUnique(actions);
         chainMap.put(taskType, List.of(actions));
-        System.out.println("[FlowTask] 节点链就绪 taskType=" + taskType
-                + " 节点数=" + actions.length);
+        LogUtilExt.info(log, "[FlowTask] 节点链就绪 taskType={0} 节点数={1}", taskType, actions.length);
     }
 
     /**

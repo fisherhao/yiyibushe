@@ -5,6 +5,8 @@ import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -25,6 +27,8 @@ import java.util.Objects;
  */
 @Component
 public class FlowTaskTemplate {
+
+    private static final Logger log = LogUtilExt.getLogger(FlowTaskTemplate.class);
 
     /** 默认最大重试次数 */
     public static final int DEFAULT_MAX_RETRY = 3;
@@ -120,11 +124,9 @@ public class FlowTaskTemplate {
         // 当前指针指向链首节点：下次唤起从这里开始执行
         task.setCurrentNodeType(chain.get(0).getNodeType());
         Long taskId = taskStore.save(task);
-        System.out.println("[FlowTask] 任务已创建并入库 taskId=" + taskId
-                + " taskType=" + taskType + " 首节点=" + task.getCurrentNodeType()
-                + " 节点数=" + chain.size()
-                + " priority=" + priority
-                + " retryStrategy=" + Objects.requireNonNullElse(retryStrategyCode, "DEFAULT"));
+        LogUtilExt.info(log, "[FlowTask] 任务已创建并入库 taskId={0} taskType={1} 首节点={2} 节点数={3} priority={4} retryStrategy={5}",
+                taskId, taskType, task.getCurrentNodeType(), chain.size(), priority,
+                Objects.requireNonNullElse(retryStrategyCode, "DEFAULT"));
         return taskId;
     }
 

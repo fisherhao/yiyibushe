@@ -5,6 +5,8 @@ import com.dayu.yiyibushe.domain.asset.AssetCategory;
 import com.dayu.yiyibushe.domain.asset.AssetItem;
 import com.dayu.yiyibushe.infra.resource.LocalResourceManager;
 import jakarta.annotation.PostConstruct;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,6 +36,8 @@ import java.util.UUID;
 @ConditionalOnProperty(prefix = "storage", name = "type", havingValue = "local", matchIfMissing = true)
 public class LocalFileStorageService implements StorageService {
 
+    private static final Logger log = LogUtilExt.getLogger(LocalFileStorageService.class);
+
     /** 本地文件的 URL 访问前缀（与 WebConfig 资源映射对应） */
     private static final String URL_PREFIX = "/local-files/";
 
@@ -57,7 +61,7 @@ public class LocalFileStorageService implements StorageService {
     @PostConstruct
     public void init() {
         this.assetRoot = resourceManager.assetsDir();
-        System.out.println("[Storage] 使用本地文件夹存储: " + assetRoot);
+        LogUtilExt.info(log, "[Storage] 使用本地文件夹存储: {0}", assetRoot);
     }
 
     /**

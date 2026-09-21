@@ -2,6 +2,8 @@ package com.dayu.yiyibushe.infra.ai.credential;
 
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import jakarta.annotation.PostConstruct;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -25,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class InMemoryCredentialStore implements CredentialStore {
 
+    private static final Logger log = LogUtilExt.getLogger(InMemoryCredentialStore.class);
+
     /** 支持的厂商列表（未来可由 MySQL/Redis 加载） */
     private static final List<String> SUPPORTED_PROVIDERS = List.of(
             "dashscope", "openai", "deepseek", "claude", "gemini", "qwen", "doubao", "moonshot");
@@ -46,7 +50,7 @@ public class InMemoryCredentialStore implements CredentialStore {
             }
             if (StringUtilExt.isNotBlank(appSecret)) {
                 credentialStore.put(provider, new ApiCredential(appKey, appSecret.trim()));
-                System.out.println("[CredentialStore] 已加载厂商凭证: " + provider);
+                LogUtilExt.info(log, "[CredentialStore] 已加载厂商凭证: {0}", provider);
             }
         }
     }

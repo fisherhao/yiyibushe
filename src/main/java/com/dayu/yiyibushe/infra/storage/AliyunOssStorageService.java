@@ -7,6 +7,8 @@ import com.dayu.yiyibushe.infra.config.OssProperties;
 import com.aliyun.oss.OSS;
 import com.aliyun.oss.model.OSSObject;
 import com.aliyun.oss.model.PutObjectResult;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -31,6 +33,8 @@ import java.util.UUID;
 @Service
 @ConditionalOnProperty(prefix = "storage", name = "type", havingValue = "oss")
 public class AliyunOssStorageService implements StorageService {
+
+    private static final Logger log = LogUtilExt.getLogger(AliyunOssStorageService.class);
 
     private final OSS ossClient;
     private final OssProperties properties;
@@ -67,8 +71,8 @@ public class AliyunOssStorageService implements StorageService {
                 + UUID.randomUUID().toString().replace("-", "") + suffix;
         try (InputStream inputStream = file.getInputStream()) {
             PutObjectResult result = ossClient.putObject(properties.getBucketName(), key, inputStream, null);
-            System.out.println("上传成功: bucket=" + properties.getBucketName()
-                    + ", key=" + key + ", etag=" + result.getETag());
+            LogUtilExt.info(log, "[Storage] 上传成功: bucket={0}, key={1}, etag={2}",
+                    properties.getBucketName(), key, result.getETag());
         }
         return new AssetItem(null, key, publicUrl(key), category.name(), originalName, file.getSize(), userId);
     }

@@ -14,6 +14,8 @@ import com.dayu.yiyibushe.infra.ai.core.AiResponse;
 import com.dayu.yiyibushe.infra.ai.service.AiPlatformService;
 import com.dayu.yiyibushe.infra.auth.LoginPrincipal;
 import com.dayu.yiyibushe.infra.storage.StorageService;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import org.slf4j.Logger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -34,6 +36,8 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 @Service
 public class OutfitServiceImpl implements OutfitService {
+
+    private static final Logger log = LogUtilExt.getLogger(OutfitServiceImpl.class);
 
     /** 文生图模型编码 */
     private static final String TEXT_TO_IMAGE_MODEL = "dashscope-wanx-t2i";
@@ -86,7 +90,7 @@ public class OutfitServiceImpl implements OutfitService {
         if (CollectionUtilExt.isEmpty(garmentUrls)) {
             throw new BizException(BizErrorCode.OUTFIT_NO_CLOTHES);
         }
-        System.out.println("[Outfit] 开始链式试穿，衣物数量=" + CollectionUtilExt.getSize(garmentUrls));
+        LogUtilExt.info(log, "[Outfit] 开始链式试穿，衣物数量={0}", CollectionUtilExt.getSize(garmentUrls));
         String lastTaskId = null;
         for (String garmentUrl : garmentUrls) {
             lastTaskId = aiPlatformService.submitVirtualTryOn(
@@ -139,7 +143,7 @@ public class OutfitServiceImpl implements OutfitService {
         String prompt = StringUtilExt.isBlank(request.prompt())
                 ? "一位穿着时尚的年轻人，全身照，真实摄影风格"
                 : request.prompt() + "，人物全身照，真实摄影风格";
-        System.out.println("[Outfit] 无人物图，按提示词文生图");
+        LogUtilExt.info(log, "[Outfit] 无人物图，按提示词文生图");
         return aiPlatformService.generateImage(TEXT_TO_IMAGE_MODEL, prompt, null).get(0);
     }
 
