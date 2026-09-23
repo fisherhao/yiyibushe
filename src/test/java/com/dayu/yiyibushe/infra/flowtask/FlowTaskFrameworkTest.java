@@ -5,7 +5,7 @@ import com.dayu.yiyibushe.app.task.PassThroughNode;
 import com.dayu.yiyibushe.app.task.SubmitCallbackNode;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.infra.flowtask.retry.FixedIntervalRetryStrategy;
-import com.dayu.yiyibushe.infra.mq.MessageProducer;
+import com.dayu.yiyibushe.infra.mq.RocketMqTemplate;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,7 +56,7 @@ class FlowTaskFrameworkTest {
     private TaskEngine taskEngine;
 
     @Autowired
-    private MessageProducer messageProducer;
+    private RocketMqTemplate rocketMqTemplate;
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -100,7 +100,7 @@ class FlowTaskFrameworkTest {
         assertEquals(SubmitCallbackNode.NODE_TYPE, dispatched.getCurrentNodeType());
 
         // 回调消息走 MQ 推送通道（本地发送、本地消费），消息只带任务 ID
-        messageProducer.send(TaskCallbackMessage.TOPIC, TaskCallbackMessage.of(taskId));
+        rocketMqTemplate.syncSend(TaskCallbackMessage.TOPIC, TaskCallbackMessage.of(taskId));
 
         // load1 成功 -> load2 首跑失败 -> 任务回 INIT 等下次触发
         FlowTask retryWaiting = awaitTask(taskId,
