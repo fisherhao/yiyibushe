@@ -1,56 +1,59 @@
-package com.dayu.yiyibushe.infra.ai.registry;
-
-import com.dayu.yiyibushe.infra.ai.core.ModelType;
+package com.dayu.yiyibushe.dao.po;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
- * 说明：模型定义，描述一个可用模型的元信息（编码、厂商、类型、端点、模型名）。
+ * AI 模型资源持久化对象（PO），与 ai_model 表一条记录对应，只做持久化映射。
  * <p>
- * 业务层通过 modelCode 调用模型，连接层通过本定义知道该用哪个厂商的哪个模型、走哪个端点。
+ * JSON 列（input_modalities、supported_params、default_params 等）在 PO 层统一以 String
+ * 承载，领域层按需用 Jackson 解析，避免类型处理器的嵌套结构不安全问题。
  *
  * @author Witty·Kid Fisher
  * @version 0.0.1
  */
-public class ModelDefinition implements Serializable {
+public class ModelPO implements Serializable {
 
-    private static final long serialVersionUID = 8392017465028391047L;
+    private static final long serialVersionUID = 1001001001001001001L;
 
-    /** 模型唯一编码，如 dashscope-wanx-t2i、openai-gpt4o、claude-3-5-sonnet */
-    private String code;
+    /** 物理主键 */
+    private Long id;
 
-    /** 厂商标识，与 CredentialStore 的 provider 对应，如 dashscope、openai、claude */
-    private String provider;
-
-    /** 模型类型 */
-    private ModelType modelType;
-
-    /** 厂商 API 基础 URL */
-    private String baseUrl;
-
-    /** 厂商侧的模型名，如 wanx2.1-t2i-turbo、gpt-4o、claude-3-5-sonnet-20241022 */
-    private String modelName;
-
-    /** OpenAI 兼容协议下的对话接口路径（不同厂商有 /v1、/api/v3、/compatible-mode/v1 等差异） */
-    private String chatPath = "/v1/chat/completions";
-
-    /** 是否为异步任务模型（图片生成类通常为异步） */
-    private boolean async;
-
-    /** 异步轮询间隔（毫秒），async=true 时生效 */
-    private long pollIntervalMs = 3000L;
-
-    /** 异步轮询超时（毫秒），async=true 时生效 */
-    private long pollTimeoutMs = 180000L;
-
-    /** 业务ID（ai_model.model_id，本地降级定义可为空） */
+    /** 业务ID（IdUtil 发号） */
     private Long modelId;
+
+    /** 模型编码，Agent 以 model_code 引用 */
+    private String modelCode;
 
     /** 展示名称 */
     private String displayName;
 
-    /** 接入协议：OPENAI_COMPATIBLE/DASHSCOPE_NATIVE，连接工厂按此路由 */
+    /** 厂商标识，对应凭证 provider */
+    private String provider;
+
+    /** 模型类型：TEXT_CHAT/IMAGE_GENERATION/IMAGE_EDITING/MULTIMODAL/EMBEDDING */
+    private String modelType;
+
+    /** 接入协议：OPENAI_COMPATIBLE/DASHSCOPE_NATIVE/MCP(预留)/CUSTOM(预留) */
     private String protocol;
+
+    /** API 基础地址 */
+    private String baseUrl;
+
+    /** 对话接口路径（OPENAI_COMPATIBLE 生效） */
+    private String chatPath;
+
+    /** 厂商侧模型名 */
+    private String vendorModelName;
+
+    /** 是否异步任务模型：1-是 0-否 */
+    private Integer asyncFlag;
+
+    /** 异步轮询间隔（毫秒） */
+    private Long pollIntervalMs;
+
+    /** 异步轮询超时（毫秒） */
+    private Long pollTimeoutMs;
 
     /** 上下文窗口（token） */
     private Integer contextWindow;
@@ -58,7 +61,7 @@ public class ModelDefinition implements Serializable {
     /** 最大输出 token */
     private Integer maxOutputTokens;
 
-    /** 输入模态 JSON 原文 */
+    /** 输入模态 JSON 原文，如 ["text","image"] */
     private String inputModalities;
 
     /** 输出模态 JSON 原文 */
@@ -91,7 +94,7 @@ public class ModelDefinition implements Serializable {
     /** 来源：DB/LOCAL_FILE/MARKET/GIT */
     private String sourceType;
 
-    /** 来源引用 */
+    /** 来源引用（文件路径/市场编码等） */
     private String sourceRef;
 
     /** 负责人 */
@@ -103,200 +106,67 @@ public class ModelDefinition implements Serializable {
     /** 备注 */
     private String remark;
 
+    /** 创建时间 */
+    private LocalDateTime gmtCreate;
+
+    /** 更新时间 */
+    private LocalDateTime gmtModify;
+
     /**
-     * 无参构造器
+     * 获取物理主键
+     *
+     * @return 物理主键
      */
-    public ModelDefinition() {
+    public Long getId() {
+        return id;
     }
 
     /**
-     * 获取模型唯一编码，如 dashscope-wanx-t2i、openai-gpt4o、claude-3-5-sonnet
+     * 设置物理主键
      *
-     * @return 模型唯一编码，如 dashscope-wanx-t2i、openai-gpt4o、claude-3-5-sonnet
+     * @param id
+                 物理主键
      */
-    public String getCode() {
-        return code;
+    public void setId(Long id) {
+        this.id = id;
     }
 
     /**
-     * 设置模型唯一编码，如 dashscope-wanx-t2i、openai-gpt4o、claude-3-5-sonnet
+     * 获取业务ID（IdUtil 发号）
      *
-     * @param code
-                   模型唯一编码，如 dashscope-wanx-t2i、openai-gpt4o、claude-3-5-sonnet
-     */
-    public void setCode(String code) {
-        this.code = code;
-    }
-
-    /**
-     * 获取厂商标识，与 CredentialStore 的 provider 对应，如 dashscope、openai、claude
-     *
-     * @return 厂商标识，与 CredentialStore 的 provider 对应，如 dashscope、openai、claude
-     */
-    public String getProvider() {
-        return provider;
-    }
-
-    /**
-     * 设置厂商标识，与 CredentialStore 的 provider 对应，如 dashscope、openai、claude
-     *
-     * @param provider
-                       厂商标识，与 CredentialStore 的 provider 对应，如 dashscope、openai、claude
-     */
-    public void setProvider(String provider) {
-        this.provider = provider;
-    }
-
-    /**
-     * 获取模型类型
-     *
-     * @return 模型类型
-     */
-    public ModelType getModelType() {
-        return modelType;
-    }
-
-    /**
-     * 设置模型类型
-     *
-     * @param modelType
-                        模型类型
-     */
-    public void setModelType(ModelType modelType) {
-        this.modelType = modelType;
-    }
-
-    /**
-     * 获取厂商 API 基础 URL
-     *
-     * @return 厂商 API 基础 URL
-     */
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    /**
-     * 设置厂商 API 基础 URL
-     *
-     * @param baseUrl
-                      厂商 API 基础 URL
-     */
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    /**
-     * 获取厂商侧的模型名，如 wanx2.1-t2i-turbo、gpt-4o、claude-3-5-sonnet-20241022
-     *
-     * @return 厂商侧的模型名，如 wanx2.1-t2i-turbo、gpt-4o、claude-3-5-sonnet-20241022
-     */
-    public String getModelName() {
-        return modelName;
-    }
-
-    /**
-     * 设置厂商侧的模型名，如 wanx2.1-t2i-turbo、gpt-4o、claude-3-5-sonnet-20241022
-     *
-     * @param modelName
-                        厂商侧的模型名，如 wanx2.1-t2i-turbo、gpt-4o、claude-3-5-sonnet-20241022
-     */
-    public void setModelName(String modelName) {
-        this.modelName = modelName;
-    }
-
-    /**
-     * 获取OpenAI 兼容协议下的对话接口路径（不同厂商有 /v1、/api/v3、/compatible-mode/v1 等差异）
-     *
-     * @return OpenAI 兼容协议下的对话接口路径（不同厂商有 /v1、/api/v3、/compatible-mode/v1 等差异）
-     */
-    public String getChatPath() {
-        return chatPath;
-    }
-
-    /**
-     * 设置OpenAI 兼容协议下的对话接口路径（不同厂商有 /v1、/api/v3、/compatible-mode/v1 等差异）
-     *
-     * @param chatPath
-                       OpenAI 兼容协议下的对话接口路径（不同厂商有 /v1、/api/v3、/compatible-mode/v1 等差异）
-     */
-    public void setChatPath(String chatPath) {
-        this.chatPath = chatPath;
-    }
-
-    /**
-     * 是否为异步任务模型（图片生成类通常为异步）
-     *
-     * @return true 表示为异步任务模型（图片生成类通常为异步）
-     */
-    public boolean isAsync() {
-        return async;
-    }
-
-    /**
-     * 设置是否为异步任务模型（图片生成类通常为异步）
-     *
-     * @param async
-                    是否为异步任务模型（图片生成类通常为异步）
-     */
-    public void setAsync(boolean async) {
-        this.async = async;
-    }
-
-    /**
-     * 获取异步轮询间隔（毫秒），async=true 时生效
-     *
-     * @return 异步轮询间隔（毫秒），async=true 时生效
-     */
-    public long getPollIntervalMs() {
-        return pollIntervalMs;
-    }
-
-    /**
-     * 设置异步轮询间隔（毫秒），async=true 时生效
-     *
-     * @param pollIntervalMs
-                             异步轮询间隔（毫秒），async=true 时生效
-     */
-    public void setPollIntervalMs(long pollIntervalMs) {
-        this.pollIntervalMs = pollIntervalMs;
-    }
-
-    /**
-     * 获取异步轮询超时（毫秒），async=true 时生效
-     *
-     * @return 异步轮询超时（毫秒），async=true 时生效
-     */
-    public long getPollTimeoutMs() {
-        return pollTimeoutMs;
-    }
-
-    /**
-     * 设置异步轮询超时（毫秒），async=true 时生效
-     *
-     * @param pollTimeoutMs
-                            异步轮询超时（毫秒），async=true 时生效
-     */
-    public void setPollTimeoutMs(long pollTimeoutMs) {
-        this.pollTimeoutMs = pollTimeoutMs;
-    }
-
-    /**
-     * 获取业务ID（ai_model.model_id，本地降级定义可为空）
-     *
-     * @return 业务ID（ai_model.model_id，本地降级定义可为空）
+     * @return 业务ID（IdUtil 发号）
      */
     public Long getModelId() {
         return modelId;
     }
 
     /**
-     * 设置业务ID（ai_model.model_id，本地降级定义可为空）
+     * 设置业务ID（IdUtil 发号）
      *
      * @param modelId
-                      业务ID（ai_model.model_id，本地降级定义可为空）
+                      业务ID（IdUtil 发号）
      */
     public void setModelId(Long modelId) {
         this.modelId = modelId;
+    }
+
+    /**
+     * 获取模型编码，Agent 以 model_code 引用
+     *
+     * @return 模型编码，Agent 以 model_code 引用
+     */
+    public String getModelCode() {
+        return modelCode;
+    }
+
+    /**
+     * 设置模型编码，Agent 以 model_code 引用
+     *
+     * @param modelCode
+                        模型编码，Agent 以 model_code 引用
+     */
+    public void setModelCode(String modelCode) {
+        this.modelCode = modelCode;
     }
 
     /**
@@ -319,6 +189,44 @@ public class ModelDefinition implements Serializable {
     }
 
     /**
+     * 获取厂商标识，对应凭证 provider
+     *
+     * @return 厂商标识，对应凭证 provider
+     */
+    public String getProvider() {
+        return provider;
+    }
+
+    /**
+     * 设置厂商标识，对应凭证 provider
+     *
+     * @param provider
+                       厂商标识，对应凭证 provider
+     */
+    public void setProvider(String provider) {
+        this.provider = provider;
+    }
+
+    /**
+     * 获取模型类型
+     *
+     * @return 模型类型
+     */
+    public String getModelType() {
+        return modelType;
+    }
+
+    /**
+     * 设置模型类型
+     *
+     * @param modelType
+                        模型类型
+     */
+    public void setModelType(String modelType) {
+        this.modelType = modelType;
+    }
+
+    /**
      * 获取接入协议
      *
      * @return 接入协议
@@ -335,6 +243,120 @@ public class ModelDefinition implements Serializable {
      */
     public void setProtocol(String protocol) {
         this.protocol = protocol;
+    }
+
+    /**
+     * 获取API 基础地址
+     *
+     * @return API 基础地址
+     */
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    /**
+     * 设置API 基础地址
+     *
+     * @param baseUrl
+                      API 基础地址
+     */
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
+    }
+
+    /**
+     * 获取对话接口路径（OPENAI_COMPATIBLE 生效）
+     *
+     * @return 对话接口路径（OPENAI_COMPATIBLE 生效）
+     */
+    public String getChatPath() {
+        return chatPath;
+    }
+
+    /**
+     * 设置对话接口路径（OPENAI_COMPATIBLE 生效）
+     *
+     * @param chatPath
+                       对话接口路径（OPENAI_COMPATIBLE 生效）
+     */
+    public void setChatPath(String chatPath) {
+        this.chatPath = chatPath;
+    }
+
+    /**
+     * 获取厂商侧模型名
+     *
+     * @return 厂商侧模型名
+     */
+    public String getVendorModelName() {
+        return vendorModelName;
+    }
+
+    /**
+     * 设置厂商侧模型名
+     *
+     * @param vendorModelName
+                              厂商侧模型名
+     */
+    public void setVendorModelName(String vendorModelName) {
+        this.vendorModelName = vendorModelName;
+    }
+
+    /**
+     * 获取是否异步任务模型
+     *
+     * @return 是否异步任务模型
+     */
+    public Integer getAsyncFlag() {
+        return asyncFlag;
+    }
+
+    /**
+     * 设置是否异步任务模型
+     *
+     * @param asyncFlag
+                        是否异步任务模型
+     */
+    public void setAsyncFlag(Integer asyncFlag) {
+        this.asyncFlag = asyncFlag;
+    }
+
+    /**
+     * 获取异步轮询间隔（毫秒）
+     *
+     * @return 异步轮询间隔（毫秒）
+     */
+    public Long getPollIntervalMs() {
+        return pollIntervalMs;
+    }
+
+    /**
+     * 设置异步轮询间隔（毫秒）
+     *
+     * @param pollIntervalMs
+                             异步轮询间隔（毫秒）
+     */
+    public void setPollIntervalMs(Long pollIntervalMs) {
+        this.pollIntervalMs = pollIntervalMs;
+    }
+
+    /**
+     * 获取异步轮询超时（毫秒）
+     *
+     * @return 异步轮询超时（毫秒）
+     */
+    public Long getPollTimeoutMs() {
+        return pollTimeoutMs;
+    }
+
+    /**
+     * 设置异步轮询超时（毫秒）
+     *
+     * @param pollTimeoutMs
+                            异步轮询超时（毫秒）
+     */
+    public void setPollTimeoutMs(Long pollTimeoutMs) {
+        this.pollTimeoutMs = pollTimeoutMs;
     }
 
     /**
@@ -376,19 +398,19 @@ public class ModelDefinition implements Serializable {
     }
 
     /**
-     * 获取输入模态 JSON 原文
+     * 获取输入模态 JSON 原文，如 ["text","image"]
      *
-     * @return 输入模态 JSON 原文
+     * @return 输入模态 JSON 原文，如 ["text","image"]
      */
     public String getInputModalities() {
         return inputModalities;
     }
 
     /**
-     * 设置输入模态 JSON 原文
+     * 设置输入模态 JSON 原文，如 ["text","image"]
      *
      * @param inputModalities
-                              输入模态 JSON 原文
+                              输入模态 JSON 原文，如 ["text","image"]
      */
     public void setInputModalities(String inputModalities) {
         this.inputModalities = inputModalities;
@@ -585,19 +607,19 @@ public class ModelDefinition implements Serializable {
     }
 
     /**
-     * 获取来源引用
+     * 获取来源引用（文件路径/市场编码等）
      *
-     * @return 来源引用
+     * @return 来源引用（文件路径/市场编码等）
      */
     public String getSourceRef() {
         return sourceRef;
     }
 
     /**
-     * 设置来源引用
+     * 设置来源引用（文件路径/市场编码等）
      *
      * @param sourceRef
-                        来源引用
+                        来源引用（文件路径/市场编码等）
      */
     public void setSourceRef(String sourceRef) {
         this.sourceRef = sourceRef;
@@ -658,5 +680,43 @@ public class ModelDefinition implements Serializable {
      */
     public void setRemark(String remark) {
         this.remark = remark;
+    }
+
+    /**
+     * 获取创建时间
+     *
+     * @return 创建时间
+     */
+    public LocalDateTime getGmtCreate() {
+        return gmtCreate;
+    }
+
+    /**
+     * 设置创建时间
+     *
+     * @param gmtCreate
+                        创建时间
+     */
+    public void setGmtCreate(LocalDateTime gmtCreate) {
+        this.gmtCreate = gmtCreate;
+    }
+
+    /**
+     * 获取更新时间
+     *
+     * @return 更新时间
+     */
+    public LocalDateTime getGmtModify() {
+        return gmtModify;
+    }
+
+    /**
+     * 设置更新时间
+     *
+     * @param gmtModify
+                        更新时间
+     */
+    public void setGmtModify(LocalDateTime gmtModify) {
+        this.gmtModify = gmtModify;
     }
 }

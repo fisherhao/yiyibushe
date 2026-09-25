@@ -31,76 +31,76 @@ public class UserRequestDTO extends BaseRequest {
     }
 
     /**
-     * Getter method for property <tt>userId</tt>.
+     * 获取用户 ID（精确查询）
      *
-     * @return property value of userId
+     * @return 用户 ID（精确查询）
      */
     public Long getUserId() {
         return userId;
     }
 
     /**
-     * Setter method for property <tt>userId</tt>.
+     * 设置用户 ID（精确查询）
      *
      * @param userId
-     *     value to be assigned to property userId
+                     用户 ID（精确查询）
      */
     public void setUserId(Long userId) {
         this.userId = userId;
     }
 
     /**
-     * Getter method for property <tt>username</tt>.
+     * 获取用户名（模糊查询）
      *
-     * @return property value of username
+     * @return 用户名（模糊查询）
      */
     public String getUsername() {
         return username;
     }
 
     /**
-     * Setter method for property <tt>username</tt>.
+     * 设置用户名（模糊查询）
      *
      * @param username
-     *     value to be assigned to property username
+                       用户名（模糊查询）
      */
     public void setUsername(String username) {
         this.username = username;
     }
 
     /**
-     * Getter method for property <tt>phone</tt>.
+     * 获取手机号
      *
-     * @return property value of phone
+     * @return 手机号
      */
     public String getPhone() {
         return phone;
     }
 
     /**
-     * Setter method for property <tt>phone</tt>.
+     * 设置手机号
      *
      * @param phone
-     *     value to be assigned to property phone
+                    手机号
      */
     public void setPhone(String phone) {
         this.phone = phone;
     }
 
     /**
-     * Getter method for property <tt>status</tt>.
+     * 获取状态
      *
-     * @return property value of status
+     * @return 状态
      */
     public Integer getStatus() {
         return status;
     }
 
     /**
-     * Setter method for property <tt>status</tt>.
+     * 设置状态
      *
      * @param status
-     *     value to be assigned to property status
+                     状态
      */
     public void setStatus(Integer status) {
         this.status = status;

@@ -28,57 +28,57 @@ public class BaseResult implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>traceId</tt>.
+     * 获取链路追踪 ID
      *
-     * @return property value of traceId
+     * @return 链路追踪 ID
      */
     public String getTraceId() {
         return traceId;
     }
 
     /**
-     * Setter method for property <tt>traceId</tt>.
+     * 设置链路追踪 ID
      *
      * @param traceId
-     *     value to be assigned to property traceId
+                      链路追踪 ID
      */
     public void setTraceId(String traceId) {
         this.traceId = traceId;
     }
 
     /**
-     * Getter method for property <tt>pageIndex</tt>.
+     * 获取当前页码
      *
-     * @return property value of pageIndex
+     * @return 当前页码
      */
     public Integer getPageIndex() {
         return pageIndex;
     }
 
     /**
-     * Setter method for property <tt>pageIndex</tt>.
+     * 设置当前页码
      *
      * @param pageIndex
-     *     value to be assigned to property pageIndex
+                        当前页码
      */
     public void setPageIndex(Integer pageIndex) {
         this.pageIndex = pageIndex;
     }
 
     /**
-     * Getter method for property <tt>pageSize</tt>.
+     * 获取每页条数
      *
-     * @return property value of pageSize
+     * @return 每页条数
      */
     public Integer getPageSize() {
         return pageSize;
     }
 
     /**
-     * Setter method for property <tt>pageSize</tt>.
+     * 设置每页条数
      *
      * @param pageSize
-     *     value to be assigned to property pageSize
+                       每页条数
      */
     public void setPageSize(Integer pageSize) {
         this.pageSize = pageSize;

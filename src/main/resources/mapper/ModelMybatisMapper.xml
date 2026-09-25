@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 模型表 ai_model：JSON 列以 String 承载；业务ID外部赋值；时间列数据库填充 -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.ModelMybatisMapper">
+
+    <sql id="selectColumns">
+        id, model_id, model_code, display_name, provider, model_type, protocol, base_url, chat_path,
+        vendor_model_name, async_flag, poll_interval_ms, poll_timeout_ms, context_window,
+        max_output_tokens, input_modalities, output_modalities, supported_params, default_params,
+        icon, category, tags, publish_status, runtime_status, visibility, source_type, source_ref,
+        owner, version, remark, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectByModelCode" resultType="com.dayu.yiyibushe.dao.po.ModelPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_model
+        WHERE model_code = #{modelCode}
+        ORDER BY version DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.ModelPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_model
+        ORDER BY model_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_model (model_id, model_code, display_name, provider, model_type, protocol,
+                              base_url, chat_path, vendor_model_name, async_flag, poll_interval_ms,
+                              poll_timeout_ms, context_window, max_output_tokens, input_modalities,
+                              output_modalities, supported_params, default_params, icon, category,
+                              tags, publish_status, runtime_status, visibility, source_type,
+                              source_ref, owner, version, remark)
+        VALUES (#{modelId}, #{modelCode}, #{displayName}, #{provider}, #{modelType}, #{protocol},
+                #{baseUrl}, #{chatPath}, #{vendorModelName}, #{asyncFlag}, #{pollIntervalMs},
+                #{pollTimeoutMs}, #{contextWindow}, #{maxOutputTokens}, #{inputModalities},
+                #{outputModalities}, #{supportedParams}, #{defaultParams}, #{icon}, #{category},
+                #{tags}, #{publishStatus}, #{runtimeStatus}, #{visibility}, #{sourceType},
+                #{sourceRef}, #{owner}, #{version}, #{remark})
+    </insert>
+
+    <update id="updateByModelId">
+        UPDATE ai_model
+        SET display_name      = #{displayName},
+            provider          = #{provider},
+            model_type        = #{modelType},
+            protocol          = #{protocol},
+            base_url          = #{baseUrl},
+            chat_path         = #{chatPath},
+            vendor_model_name = #{vendorModelName},
+            async_flag        = #{asyncFlag},
+            poll_interval_ms  = #{pollIntervalMs},
+            poll_timeout_ms   = #{pollTimeoutMs},
+            context_window    = #{contextWindow},
+            max_output_tokens = #{maxOutputTokens},
+            input_modalities  = #{inputModalities},
+            output_modalities = #{outputModalities},
+            supported_params  = #{supportedParams},
+            default_params    = #{defaultParams},
+            icon              = #{icon},
+            category          = #{category},
+            tags              = #{tags},
+            publish_status    = #{publishStatus},
+            runtime_status    = #{runtimeStatus},
+            visibility        = #{visibility},
+            source_type       = #{sourceType},
+            source_ref        = #{sourceRef},
+            owner             = #{owner},
+            version           = #{version},
+            remark            = #{remark}
+        WHERE model_id = #{modelId}
+    </update>
+
+</mapper>

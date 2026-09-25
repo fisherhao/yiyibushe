@@ -35,95 +35,95 @@ public class UserModel implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>userId</tt>.
+     * 获取用户 ID
      *
-     * @return property value of userId
+     * @return 用户 ID
      */
     public Long getUserId() {
         return userId;
     }
 
     /**
-     * Setter method for property <tt>userId</tt>.
+     * 设置用户 ID
      *
      * @param userId
-     *     value to be assigned to property userId
+                     用户 ID
      */
     public void setUserId(Long userId) {
         this.userId = userId;
     }
 
     /**
-     * Getter method for property <tt>username</tt>.
+     * 获取用户名
      *
-     * @return property value of username
+     * @return 用户名
      */
     public String getUsername() {
         return username;
     }
 
     /**
-     * Setter method for property <tt>username</tt>.
+     * 设置用户名
      *
      * @param username
-     *     value to be assigned to property username
+                       用户名
      */
     public void setUsername(String username) {
         this.username = username;
     }
 
     /**
-     * Getter method for property <tt>nickname</tt>.
+     * 获取昵称
      *
-     * @return property value of nickname
+     * @return 昵称
      */
     public String getNickname() {
         return nickname;
     }
 
     /**
-     * Setter method for property <tt>nickname</tt>.
+     * 设置昵称
      *
      * @param nickname
-     *     value to be assigned to property nickname
+                       昵称
      */
     public void setNickname(String nickname) {
         this.nickname = nickname;
     }
 
     /**
-     * Getter method for property <tt>status</tt>.
+     * 获取状态
      *
-     * @return property value of status
+     * @return 状态
      */
     public Integer getStatus() {
         return status;
     }
 
     /**
-     * Setter method for property <tt>status</tt>.
+     * 设置状态
      *
      * @param status
-     *     value to be assigned to property status
+                     状态
      */
     public void setStatus(Integer status) {
         this.status = status;
     }
 
     /**
-     * Getter method for property <tt>registerTime</tt>.
+     * 获取注册时间
      *
-     * @return property value of registerTime
+     * @return 注册时间
      */
     public LocalDateTime getRegisterTime() {
         return registerTime;
     }
 
     /**
-     * Setter method for property <tt>registerTime</tt>.
+     * 设置注册时间
      *
      * @param registerTime
-     *     value to be assigned to property registerTime
+                           注册时间
      */
     public void setRegisterTime(LocalDateTime registerTime) {
         this.registerTime = registerTime;

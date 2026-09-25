@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 插件安装实例表 ai_plugin_install -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.PluginInstallMybatisMapper">
+
+    <sql id="selectColumns">
+        id, install_id, plugin_id, plugin_code, version, scope_type, scope_id, credential_ref,
+        config_json, install_status, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectByInstallId" resultType="com.dayu.yiyibushe.dao.po.PluginInstallPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_plugin_install
+        WHERE install_id = #{installId}
+    </select>
+
+    <select id="selectByScope" resultType="com.dayu.yiyibushe.dao.po.PluginInstallPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_plugin_install
+        WHERE scope_type = #{scopeType}
+          AND scope_id = #{scopeId}
+        ORDER BY install_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_plugin_install (install_id, plugin_id, plugin_code, version, scope_type,
+                                       scope_id, credential_ref, config_json, install_status)
+        VALUES (#{installId}, #{pluginId}, #{pluginCode}, #{version}, #{scopeType},
+                #{scopeId}, #{credentialRef}, #{configJson}, #{installStatus})
+    </insert>
+
+    <update id="updateStatusByInstallId">
+        UPDATE ai_plugin_install
+        SET install_status = #{installStatus}
+        WHERE install_id = #{installId}
+    </update>
+
+</mapper>

@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 函数表 ai_function -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.FunctionMybatisMapper">
+
+    <sql id="selectColumns">
+        id, function_id, function_code, function_name, description, executor_type, executor_config,
+        output_schema, status, version, remark, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectByFunctionCode" resultType="com.dayu.yiyibushe.dao.po.FunctionPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_function
+        WHERE function_code = #{functionCode}
+    </select>
+
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.FunctionPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_function
+        ORDER BY function_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_function (function_id, function_code, function_name, description,
+                                 executor_type, executor_config, output_schema, status, version, remark)
+        VALUES (#{functionId}, #{functionCode}, #{functionName}, #{description},
+                #{executorType}, #{executorConfig}, #{outputSchema}, #{status}, #{version}, #{remark})
+    </insert>
+
+</mapper>

@@ -74,133 +74,133 @@ public class AiRequest implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>modelCode</tt>.
+     * 获取模型编码（在 ModelRegistry 中注册的唯一标识，如 dashscope-wanx-t2i）
      *
-     * @return property value of modelCode
+     * @return 模型编码（在 ModelRegistry 中注册的唯一标识，如 dashscope-wanx-t2i）
      */
     public String getModelCode() {
         return modelCode;
     }
 
     /**
-     * Setter method for property <tt>modelCode</tt>.
+     * 设置模型编码（在 ModelRegistry 中注册的唯一标识，如 dashscope-wanx-t2i）
      *
      * @param modelCode
-     *     value to be assigned to property modelCode
+                        模型编码（在 ModelRegistry 中注册的唯一标识，如 dashscope-wanx-t2i）
      */
     public void setModelCode(String modelCode) {
         this.modelCode = modelCode;
     }
 
     /**
-     * Getter method for property <tt>messages</tt>.
+     * 获取消息列表（对话场景）
      *
-     * @return property value of messages
+     * @return 消息列表（对话场景）
      */
     public List<AiMessage> getMessages() {
         return messages;
     }
 
     /**
-     * Setter method for property <tt>messages</tt>.
+     * 设置消息列表（对话场景）
      *
      * @param messages
-     *     value to be assigned to property messages
+                       消息列表（对话场景）
      */
     public void setMessages(List<AiMessage> messages) {
         this.messages = messages;
     }
 
     /**
-     * Getter method for property <tt>prompt</tt>.
+     * 获取文本提示词（文生图 / 图像编辑场景，与 messages 二选一）
      *
-     * @return property value of prompt
+     * @return 文本提示词（文生图 / 图像编辑场景，与 messages 二选一）
      */
     public String getPrompt() {
         return prompt;
     }
 
     /**
-     * Setter method for property <tt>prompt</tt>.
+     * 设置文本提示词（文生图 / 图像编辑场景，与 messages 二选一）
      *
      * @param prompt
-     *     value to be assigned to property prompt
+                     文本提示词（文生图 / 图像编辑场景，与 messages 二选一）
      */
     public void setPrompt(String prompt) {
         this.prompt = prompt;
     }
 
     /**
-     * Getter method for property <tt>referenceImageUrls</tt>.
+     * 获取参考图 URL 列表（文生图参考 / 多模态输入）
      *
-     * @return property value of referenceImageUrls
+     * @return 参考图 URL 列表（文生图参考 / 多模态输入）
      */
     public List<String> getReferenceImageUrls() {
         return referenceImageUrls;
     }
 
     /**
-     * Setter method for property <tt>referenceImageUrls</tt>.
+     * 设置参考图 URL 列表（文生图参考 / 多模态输入）
      *
      * @param referenceImageUrls
-     *     value to be assigned to property referenceImageUrls
+                                 参考图 URL 列表（文生图参考 / 多模态输入）
      */
     public void setReferenceImageUrls(List<String> referenceImageUrls) {
         this.referenceImageUrls = referenceImageUrls;
     }
 
     /**
-     * Getter method for property <tt>personImageUrl</tt>.
+     * 获取人物图 URL（虚拟试衣场景）
      *
-     * @return property value of personImageUrl
+     * @return 人物图 URL（虚拟试衣场景）
      */
     public String getPersonImageUrl() {
         return personImageUrl;
     }
 
     /**
-     * Setter method for property <tt>personImageUrl</tt>.
+     * 设置人物图 URL（虚拟试衣场景）
      *
      * @param personImageUrl
-     *     value to be assigned to property personImageUrl
+                             人物图 URL（虚拟试衣场景）
      */
     public void setPersonImageUrl(String personImageUrl) {
         this.personImageUrl = personImageUrl;
     }
 
     /**
-     * Getter method for property <tt>garmentImageUrl</tt>.
+     * 获取服装图 URL（虚拟试衣场景）
      *
-     * @return property value of garmentImageUrl
+     * @return 服装图 URL（虚拟试衣场景）
      */
     public String getGarmentImageUrl() {
         return garmentImageUrl;
     }
 
     /**
-     * Setter method for property <tt>garmentImageUrl</tt>.
+     * 设置服装图 URL（虚拟试衣场景）
      *
      * @param garmentImageUrl
-     *     value to be assigned to property garmentImageUrl
+                              服装图 URL（虚拟试衣场景）
      */
     public void setGarmentImageUrl(String garmentImageUrl) {
         this.garmentImageUrl = garmentImageUrl;
     }
 
     /**
-     * Getter method for property <tt>parameters</tt>.
+     * 获取生成参数
      *
-     * @return property value of parameters
+     * @return 生成参数
      */
     public Map<String, Object> getParameters() {
         return parameters;
     }
 
     /**
-     * Setter method for property <tt>parameters</tt>.
+     * 设置生成参数
      *
      * @param parameters
-     *     value to be assigned to property parameters
+                         生成参数
      */
     public void setParameters(Map<String, Object> parameters) {
         this.parameters = parameters;

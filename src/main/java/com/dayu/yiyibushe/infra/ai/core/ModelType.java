@@ -32,18 +32,18 @@ public enum ModelType {
     }
 
     /**
-     * Getter method for property <tt>code</tt>.
+     * 获取类型编码
      *
-     * @return property value of code
+     * @return 类型编码
      */
     public String getCode() {
         return code;
     }
 
     /**
-     * Getter method for property <tt>desc</tt>.
+     * 获取类型描述
      *
-     * @return property value of desc
+     * @return 类型描述
      */
     public String getDesc() {
         return desc;

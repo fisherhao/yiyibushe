@@ -87,133 +87,133 @@ public class AiResponse implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>success</tt>.
+     * 是否成功
      *
-     * @return property value of success
+     * @return true 表示成功
      */
     public boolean isSuccess() {
         return success;
     }
 
     /**
-     * Setter method for property <tt>success</tt>.
+     * 设置是否成功
      *
      * @param success
-     *     value to be assigned to property success
+                      是否成功
      */
     public void setSuccess(boolean success) {
         this.success = success;
     }
 
     /**
-     * Getter method for property <tt>text</tt>.
+     * 获取文本内容（对话模型的回复）
      *
-     * @return property value of text
+     * @return 文本内容（对话模型的回复）
      */
     public String getText() {
         return text;
     }
 
     /**
-     * Setter method for property <tt>text</tt>.
+     * 设置文本内容（对话模型的回复）
      *
      * @param text
-     *     value to be assigned to property text
+                   文本内容（对话模型的回复）
      */
     public void setText(String text) {
         this.text = text;
     }
 
     /**
-     * Getter method for property <tt>imageUrls</tt>.
+     * 获取生成的图片 URL 列表（图片生成 / 图像编辑模型）
      *
-     * @return property value of imageUrls
+     * @return 生成的图片 URL 列表（图片生成 / 图像编辑模型）
      */
     public List<String> getImageUrls() {
         return imageUrls;
     }
 
     /**
-     * Setter method for property <tt>imageUrls</tt>.
+     * 设置生成的图片 URL 列表（图片生成 / 图像编辑模型）
      *
      * @param imageUrls
-     *     value to be assigned to property imageUrls
+                        生成的图片 URL 列表（图片生成 / 图像编辑模型）
      */
     public void setImageUrls(List<String> imageUrls) {
         this.imageUrls = imageUrls;
     }
 
     /**
-     * Getter method for property <tt>taskId</tt>.
+     * 获取任务 ID（异步任务模型）
      *
-     * @return property value of taskId
+     * @return 任务 ID（异步任务模型）
      */
     public String getTaskId() {
         return taskId;
     }
 
     /**
-     * Setter method for property <tt>taskId</tt>.
+     * 设置任务 ID（异步任务模型）
      *
      * @param taskId
-     *     value to be assigned to property taskId
+                     任务 ID（异步任务模型）
      */
     public void setTaskId(String taskId) {
         this.taskId = taskId;
     }
 
     /**
-     * Getter method for property <tt>status</tt>.
+     * 获取任务状态
      *
-     * @return property value of status
+     * @return 任务状态
      */
     public String getStatus() {
         return status;
     }
 
     /**
-     * Setter method for property <tt>status</tt>.
+     * 设置任务状态
      *
      * @param status
-     *     value to be assigned to property status
+                     任务状态
      */
     public void setStatus(String status) {
         this.status = status;
     }
 
     /**
-     * Getter method for property <tt>errorMessage</tt>.
+     * 获取错误信息（失败时）
      *
-     * @return property value of errorMessage
+     * @return 错误信息（失败时）
      */
     public String getErrorMessage() {
         return errorMessage;
     }
 
     /**
-     * Setter method for property <tt>errorMessage</tt>.
+     * 设置错误信息（失败时）
      *
      * @param errorMessage
-     *     value to be assigned to property errorMessage
+                           错误信息（失败时）
      */
     public void setErrorMessage(String errorMessage) {
         this.errorMessage = errorMessage;
     }
 
     /**
-     * Getter method for property <tt>rawResponse</tt>.
+     * 获取厂商原始响应（调试用，业务层不应依赖）
      *
-     * @return property value of rawResponse
+     * @return 厂商原始响应（调试用，业务层不应依赖）
      */
     public String getRawResponse() {
         return rawResponse;
     }
 
     /**
-     * Setter method for property <tt>rawResponse</tt>.
+     * 设置厂商原始响应（调试用，业务层不应依赖）
      *
      * @param rawResponse
-     *     value to be assigned to property rawResponse
+                          厂商原始响应（调试用，业务层不应依赖）
      */
     public void setRawResponse(String rawResponse) {
         this.rawResponse = rawResponse;

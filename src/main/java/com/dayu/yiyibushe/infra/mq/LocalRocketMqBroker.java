@@ -32,7 +32,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  * <li>消息载体：官方 {@link Message}（org.apache.rocketmq.common.message.Message），
  * 消息体经 JSON 序列化进入 body，与真实集群的网络序列化语义一致；</li>
  * <li>发送端：实现 {@link RocketMqTemplate}，等价于 RocketMQTemplate#syncSend；</li>
- * <li>消费端：业务 bean 实现 {@link RocketMqListener} 并标注 {@link RocketMqMessageListener}，
+ * <li>消费端：业务 bean 实现 {@link RocketMqListener} 并标注
+ * {@link RocketMqMessageListener}，
  * 本类启动时扫描容器自动注册订阅（自己注册自己消费），
  * 消费时按 listener 泛型把 body 反序列化成目标类型再回调——与官方
  * rocketmq-spring 监听容器行为一致。</li>
@@ -108,8 +109,8 @@ public class LocalRocketMqBroker implements RocketMqTemplate {
                 LogUtilExt.warn(log, "[RocketMQ-Local] bean 未实现 RocketMqListener，跳过注册 bean={0}", entry.getKey());
                 continue;
             }
-            RocketMqMessageListener annotation =
-                    AnnotatedElementUtils.findMergedAnnotation(bean.getClass(), RocketMqMessageListener.class);
+            RocketMqMessageListener annotation = AnnotatedElementUtils.findMergedAnnotation(bean.getClass(),
+                    RocketMqMessageListener.class);
             register(annotation.topic(), annotation.consumerGroup(), (RocketMqListener<Object>) bean);
         }
     }
@@ -118,11 +119,11 @@ public class LocalRocketMqBroker implements RocketMqTemplate {
      * 注册一个消费者订阅（等价于 RocketMQ 的订阅关系）
      *
      * @param topic
-     *     监听的 topic
+     *                      监听的 topic
      * @param consumerGroup
-     *     消费组
+     *                      消费组
      * @param listener
-     *     消费监听器
+     *                      消费监听器
      */
     private void register(String topic, String consumerGroup, RocketMqListener<Object> listener) {
         Class<?> messageClass = resolveMessageType(listener.getClass());
@@ -141,7 +142,7 @@ public class LocalRocketMqBroker implements RocketMqTemplate {
      * 解析监听器实现的 {@link RocketMqListener} 泛型实参（即消息体类型）
      *
      * @param listenerClass
-     *     监听器实现类
+     *                      监听器实现类
      * @return 消息体类型；未声明泛型时返回 null
      */
     private Class<?> resolveMessageType(Class<?> listenerClass) {
@@ -156,9 +157,9 @@ public class LocalRocketMqBroker implements RocketMqTemplate {
      * 等价于 RocketMQTemplate#syncSend
      *
      * @param topic
-     *     目标 topic
+     *                目标 topic
      * @param message
-     *     消息体（发送方决定类型，消费方按 listener 泛型接收）
+     *                消息体（发送方决定类型，消费方按 listener 泛型接收）
      */
     @Override
     public void syncSend(String topic, Object message) {
@@ -191,7 +192,7 @@ public class LocalRocketMqBroker implements RocketMqTemplate {
      * body JSON 反序列化成监听器声明的消息类型后回调（对齐官方监听容器行为）
      *
      * @param message
-     *     待分发消息（官方 Message）
+     *                待分发消息（官方 Message）
      */
     private void dispatch(Message message) {
         List<ListenerBinding> bindings = bindingMap.get(message.getTopic());

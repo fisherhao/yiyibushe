@@ -26,9 +26,9 @@ public enum SystemErrorCode implements ErrorCode {
     }
 
     /**
-     * Getter method for property <tt>code</tt>.
+     * 获取错误码
      *
-     * @return property value of code
+     * @return 错误码
      */
     @Override
     public String getCode() {
@@ -36,9 +36,9 @@ public enum SystemErrorCode implements ErrorCode {
     }
 
     /**
-     * Getter method for property <tt>msg</tt>.
+     * 获取错误信息
      *
-     * @return property value of msg
+     * @return 错误信息
      */
     @Override
     public String getMsg() {

@@ -97,76 +97,76 @@ public class ApiResult<T> extends BaseResult implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>success</tt>.
+     * 是否成功
      *
-     * @return property value of success
+     * @return true 表示成功
      */
     public boolean isSuccess() {
         return success;
     }
 
     /**
-     * Setter method for property <tt>success</tt>.
+     * 设置是否成功
      *
      * @param success
-     *     value to be assigned to property success
+                      是否成功
      */
     public void setSuccess(boolean success) {
         this.success = success;
     }
 
     /**
-     * Getter method for property <tt>data</tt>.
+     * 获取业务数据
      *
-     * @return property value of data
+     * @return 业务数据
      */
     public T getData() {
         return data;
     }
 
     /**
-     * Setter method for property <tt>data</tt>.
+     * 设置业务数据
      *
      * @param data
-     *     value to be assigned to property data
+                   业务数据
      */
     public void setData(T data) {
         this.data = data;
     }
 
     /**
-     * Getter method for property <tt>errCode</tt>.
+     * 获取错误码
      *
-     * @return property value of errCode
+     * @return 错误码
      */
     public String getErrCode() {
         return errCode;
     }
 
     /**
-     * Setter method for property <tt>errCode</tt>.
+     * 设置错误码
      *
      * @param errCode
-     *     value to be assigned to property errCode
+                      错误码
      */
     public void setErrCode(String errCode) {
         this.errCode = errCode;
     }
 
     /**
-     * Getter method for property <tt>errMsg</tt>.
+     * 获取错误信息
      *
-     * @return property value of errMsg
+     * @return 错误信息
      */
     public String getErrMsg() {
         return errMsg;
     }
 
     /**
-     * Setter method for property <tt>errMsg</tt>.
+     * 设置错误信息
      *
      * @param errMsg
-     *     value to be assigned to property errMsg
+                     错误信息
      */
     public void setErrMsg(String errMsg) {
         this.errMsg = errMsg;

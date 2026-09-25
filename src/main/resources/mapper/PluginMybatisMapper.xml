@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 插件表 ai_plugin -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.PluginMybatisMapper">
+
+    <sql id="selectColumns">
+        id, plugin_id, plugin_code, display_name, description, icon, version, author, owner,
+        visibility, source_type, source_ref, category, tags, items, permission_config,
+        credential_required, publish_status, runtime_status, remark, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectByPluginCode" resultType="com.dayu.yiyibushe.dao.po.PluginPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_plugin
+        WHERE plugin_code = #{pluginCode}
+        ORDER BY version DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.PluginPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_plugin
+        ORDER BY plugin_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_plugin (plugin_id, plugin_code, display_name, description, icon, version,
+                               author, owner, visibility, source_type, source_ref, category, tags,
+                               items, permission_config, credential_required, publish_status,
+                               runtime_status, remark)
+        VALUES (#{pluginId}, #{pluginCode}, #{displayName}, #{description}, #{icon}, #{version},
+                #{author}, #{owner}, #{visibility}, #{sourceType}, #{sourceRef}, #{category}, #{tags},
+                #{items}, #{permissionConfig}, #{credentialRequired}, #{publishStatus},
+                #{runtimeStatus}, #{remark})
+    </insert>
+
+    <update id="updateByPluginId">
+        UPDATE ai_plugin
+        SET display_name        = #{displayName},
+            description         = #{description},
+            icon                = #{icon},
+            version             = #{version},
+            author              = #{author},
+            owner               = #{owner},
+            visibility          = #{visibility},
+            source_type         = #{sourceType},
+            source_ref          = #{sourceRef},
+            category            = #{category},
+            tags                = #{tags},
+            items               = #{items},
+            permission_config   = #{permissionConfig},
+            credential_required = #{credentialRequired},
+            publish_status      = #{publishStatus},
+            runtime_status      = #{runtimeStatus},
+            remark              = #{remark}
+        WHERE plugin_id = #{pluginId}
+    </update>
+
+</mapper>

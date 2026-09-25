@@ -25,38 +25,38 @@ public class BaseRequest implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>pageIndex</tt>.
+     * 获取当前页码，默认 1
      *
-     * @return property value of pageIndex
+     * @return 当前页码，默认 1
      */
     public Integer getPageIndex() {
         return pageIndex;
     }
 
     /**
-     * Setter method for property <tt>pageIndex</tt>.
+     * 设置当前页码，默认 1
      *
      * @param pageIndex
-     *     value to be assigned to property pageIndex
+                        当前页码，默认 1
      */
     public void setPageIndex(Integer pageIndex) {
         this.pageIndex = pageIndex;
     }
 
     /**
-     * Getter method for property <tt>pageSize</tt>.
+     * 获取每页条数，默认 10
      *
-     * @return property value of pageSize
+     * @return 每页条数，默认 10
      */
     public Integer getPageSize() {
         return pageSize;
     }
 
     /**
-     * Setter method for property <tt>pageSize</tt>.
+     * 设置每页条数，默认 10
      *
      * @param pageSize
-     *     value to be assigned to property pageSize
+                       每页条数，默认 10
      */
     public void setPageSize(Integer pageSize) {
         this.pageSize = pageSize;

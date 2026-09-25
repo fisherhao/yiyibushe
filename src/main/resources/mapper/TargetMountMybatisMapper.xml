@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 能力挂载表 ai_target_mount -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.TargetMountMybatisMapper">
+
+    <sql id="selectColumns">
+        id, mount_id, target_type, target_id, install_id, mount_type, mount_ref_id, preset_config,
+        sort_no, status, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectByTarget" resultType="com.dayu.yiyibushe.dao.po.TargetMountPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_target_mount
+        WHERE target_type = #{targetType}
+          AND target_id = #{targetId}
+          AND status = 'ENABLED'
+        ORDER BY sort_no, mount_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_target_mount (mount_id, target_type, target_id, install_id, mount_type,
+                                     mount_ref_id, preset_config, sort_no, status)
+        VALUES (#{mountId}, #{targetType}, #{targetId}, #{installId}, #{mountType},
+                #{mountRefId}, #{presetConfig}, #{sortNo}, #{status})
+    </insert>
+
+    <update id="updateStatusByMountId">
+        UPDATE ai_target_mount
+        SET status = #{status}
+        WHERE mount_id = #{mountId}
+    </update>
+
+</mapper>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 技能表 ai_skill -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.SkillMybatisMapper">
+
+    <sql id="selectColumns">
+        id, skill_id, skill_code, display_name, description, instructions, tools, trigger_examples,
+        category, tags, usage_count, license, compatibility, metadata_json, sort_no, publish_status,
+        runtime_status, version, remark, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectBySkillCode" resultType="com.dayu.yiyibushe.dao.po.SkillPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_skill
+        WHERE skill_code = #{skillCode}
+        ORDER BY version DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.SkillPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_skill
+        ORDER BY skill_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_skill (skill_id, skill_code, display_name, description, instructions, tools,
+                              trigger_examples, category, tags, usage_count, license, compatibility,
+                              metadata_json, sort_no, publish_status, runtime_status, version, remark)
+        VALUES (#{skillId}, #{skillCode}, #{displayName}, #{description}, #{instructions}, #{tools},
+                #{triggerExamples}, #{category}, #{tags}, #{usageCount}, #{license}, #{compatibility},
+                #{metadataJson}, #{sortNo}, #{publishStatus}, #{runtimeStatus}, #{version}, #{remark})
+    </insert>
+
+    <update id="updateBySkillId">
+        UPDATE ai_skill
+        SET display_name     = #{displayName},
+            description      = #{description},
+            instructions     = #{instructions},
+            tools            = #{tools},
+            trigger_examples = #{triggerExamples},
+            category         = #{category},
+            tags             = #{tags},
+            license          = #{license},
+            compatibility    = #{compatibility},
+            metadata_json    = #{metadataJson},
+            sort_no          = #{sortNo},
+            publish_status   = #{publishStatus},
+            runtime_status   = #{runtimeStatus},
+            version          = #{version},
+            remark           = #{remark}
+        WHERE skill_id = #{skillId}
+    </update>
+
+</mapper>

@@ -74,18 +74,18 @@ public class BizException extends RuntimeException {
     }
 
     /**
-     * Getter method for property <tt>errCode</tt>.
+     * 获取错误码
      *
-     * @return property value of errCode
+     * @return 错误码
      */
     public String getErrCode() {
         return errCode;
     }
 
     /**
-     * Getter method for property <tt>errMsg</tt>.
+     * 获取错误信息
      *
-     * @return property value of errMsg
+     * @return 错误信息
      */
     public String getErrMsg() {
         return errMsg;

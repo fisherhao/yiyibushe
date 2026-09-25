@@ -90,95 +90,95 @@ public class ExecutionResult implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>success</tt>.
+     * 是否执行是否成功
      *
-     * @return property value of success
+     * @return true 表示执行是否成功
      */
     public boolean isSuccess() {
         return success;
     }
 
     /**
-     * Setter method for property <tt>success</tt>.
+     * 设置执行是否成功
      *
      * @param success
-     *     value to be assigned to property success
+                      执行是否成功
      */
     public void setSuccess(boolean success) {
         this.success = success;
     }
 
     /**
-     * Getter method for property <tt>output</tt>.
+     * 获取主输出数据（单个对象）
      *
-     * @return property value of output
+     * @return 主输出数据（单个对象）
      */
     public Object getOutput() {
         return output;
     }
 
     /**
-     * Setter method for property <tt>output</tt>.
+     * 设置主输出数据（单个对象）
      *
      * @param output
-     *     value to be assigned to property output
+                     主输出数据（单个对象）
      */
     public void setOutput(Object output) {
         this.output = output;
     }
 
     /**
-     * Getter method for property <tt>outputs</tt>.
+     * 获取多输出数据（合并/并行场景，key 为来源节点 ID）
      *
-     * @return property value of outputs
+     * @return 多输出数据（合并/并行场景，key 为来源节点 ID）
      */
     public Map<String, Object> getOutputs() {
         return outputs;
     }
 
     /**
-     * Setter method for property <tt>outputs</tt>.
+     * 设置多输出数据（合并/并行场景，key 为来源节点 ID）
      *
      * @param outputs
-     *     value to be assigned to property outputs
+                      多输出数据（合并/并行场景，key 为来源节点 ID）
      */
     public void setOutputs(Map<String, Object> outputs) {
         this.outputs = outputs;
     }
 
     /**
-     * Getter method for property <tt>message</tt>.
+     * 获取附加消息
      *
-     * @return property value of message
+     * @return 附加消息
      */
     public String getMessage() {
         return message;
     }
 
     /**
-     * Setter method for property <tt>message</tt>.
+     * 设置附加消息
      *
      * @param message
-     *     value to be assigned to property message
+                      附加消息
      */
     public void setMessage(String message) {
         this.message = message;
     }
 
     /**
-     * Getter method for property <tt>elapsedMs</tt>.
+     * 获取耗时（毫秒）
      *
-     * @return property value of elapsedMs
+     * @return 耗时（毫秒）
      */
     public long getElapsedMs() {
         return elapsedMs;
     }
 
     /**
-     * Setter method for property <tt>elapsedMs</tt>.
+     * 设置耗时（毫秒）
      *
      * @param elapsedMs
-     *     value to be assigned to property elapsedMs
+                        耗时（毫秒）
      */
     public void setElapsedMs(long elapsedMs) {
         this.elapsedMs = elapsedMs;

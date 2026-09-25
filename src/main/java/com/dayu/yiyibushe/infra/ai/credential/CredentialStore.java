@@ -5,12 +5,12 @@ import java.util.List;
 /**
  * 模型凭证存储接口，统一管理各厂商的 appKey / appSecret。
  * <p>
- * 设计目标：密钥不写入 application.properties，统一由本接口管理。
- * 默认实现 {@link InMemoryCredentialStore} 启动时从环境变量加载；
- * 生产环境可替换为 Redis / MySQL / 配置中心实现，只需实现本接口并注册为 Bean。
+ * 密钥不写入 application.properties，运行期唯一实现为 {@link DbCredentialStore}，
+ * 只从 ai_credential 表读取。环境变量/本地配置中的存量密钥仅在首次启动时由
+ * LocalCredentialMigrationSource 一次性迁入数据库。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.2
+ * @version 0.0.3
  */
 public interface CredentialStore {
 

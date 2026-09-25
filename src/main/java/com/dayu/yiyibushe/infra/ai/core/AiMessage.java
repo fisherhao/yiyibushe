@@ -80,27 +80,27 @@ public class AiMessage implements Serializable {
         }
 
         /**
-         * Getter method for property <tt>type</tt>.
+         * 获取片段类型
          *
-         * @return property value of type
+         * @return 片段类型
          */
         public String getType() {
             return type;
         }
 
         /**
-         * Getter method for property <tt>text</tt>.
+         * 获取文本内容（type=text 时使用）
          *
-         * @return property value of text
+         * @return 文本内容（type=text 时使用）
          */
         public String getText() {
             return text;
         }
 
         /**
-         * Getter method for property <tt>imageUrl</tt>.
+         * 获取图片 URL（type=image_url 时使用）
          *
-         * @return property value of imageUrl
+         * @return 图片 URL（type=image_url 时使用）
          */
         public String getImageUrl() {
             return imageUrl;
@@ -174,57 +174,57 @@ public class AiMessage implements Serializable {
     }
 
     /**
-     * Getter method for property <tt>role</tt>.
+     * 获取角色
      *
-     * @return property value of role
+     * @return 角色
      */
     public String getRole() {
         return role;
     }
 
     /**
-     * Setter method for property <tt>role</tt>.
+     * 设置角色
      *
      * @param role
-     *     value to be assigned to property role
+                   角色
      */
     public void setRole(String role) {
         this.role = role;
     }
 
     /**
-     * Getter method for property <tt>content</tt>.
+     * 获取文本内容（纯文本场景直接使用）
      *
-     * @return property value of content
+     * @return 文本内容（纯文本场景直接使用）
      */
     public String getContent() {
         return content;
     }
 
     /**
-     * Setter method for property <tt>content</tt>.
+     * 设置文本内容（纯文本场景直接使用）
      *
      * @param content
-     *     value to be assigned to property content
+                      文本内容（纯文本场景直接使用）
      */
     public void setContent(String content) {
         this.content = content;
     }
 
     /**
-     * Getter method for property <tt>parts</tt>.
+     * 获取多模态内容片段列表（图文混合场景使用，与 content 二选一）
      *
-     * @return property value of parts
+     * @return 多模态内容片段列表（图文混合场景使用，与 content 二选一）
      */
     public List<ContentPart> getParts() {
         return parts;
     }
 
     /**
-     * Setter method for property <tt>parts</tt>.
+     * 设置多模态内容片段列表（图文混合场景使用，与 content 二选一）
      *
      * @param parts
-     *     value to be assigned to property parts
+                    多模态内容片段列表（图文混合场景使用，与 content 二选一）
      */
     public void setParts(List<ContentPart> parts) {
         this.parts = parts;

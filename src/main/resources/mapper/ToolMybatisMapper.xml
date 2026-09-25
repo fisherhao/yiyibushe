@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 工具表 ai_tool -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.ToolMybatisMapper">
+
+    <sql id="selectColumns">
+        id, tool_id, tool_code, function_id, display_name, description, input_schema, provides,
+        requires, discover_keywords, category, tags, usage_count, concurrency_safe, read_only,
+        external_execution, destructive_hint, idempotent_hint, timeout_seconds, retry_count,
+        cache_ttl_seconds, icon, publish_status, runtime_status, version, remark, gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectByToolCode" resultType="com.dayu.yiyibushe.dao.po.ToolPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_tool
+        WHERE tool_code = #{toolCode}
+        ORDER BY version DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.ToolPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_tool
+        ORDER BY tool_id
+    </select>
+
+    <select id="selectByFunctionId" resultType="com.dayu.yiyibushe.dao.po.ToolPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_tool
+        WHERE function_id = #{functionId}
+        ORDER BY tool_id
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_tool (tool_id, tool_code, function_id, display_name, description, input_schema,
+                             provides, requires, discover_keywords, category, tags, usage_count,
+                             concurrency_safe, read_only, external_execution, destructive_hint,
+                             idempotent_hint, timeout_seconds, retry_count, cache_ttl_seconds, icon,
+                             publish_status, runtime_status, version, remark)
+        VALUES (#{toolId}, #{toolCode}, #{functionId}, #{displayName}, #{description}, #{inputSchema},
+                #{provides}, #{requires}, #{discoverKeywords}, #{category}, #{tags}, #{usageCount},
+                #{concurrencySafe}, #{readOnly}, #{externalExecution}, #{destructiveHint},
+                #{idempotentHint}, #{timeoutSeconds}, #{retryCount}, #{cacheTtlSeconds}, #{icon},
+                #{publishStatus}, #{runtimeStatus}, #{version}, #{remark})
+    </insert>
+
+    <update id="updateByToolId">
+        UPDATE ai_tool
+        SET display_name       = #{displayName},
+            description        = #{description},
+            input_schema       = #{inputSchema},
+            provides           = #{provides},
+            requires           = #{requires},
+            discover_keywords  = #{discoverKeywords},
+            category           = #{category},
+            tags               = #{tags},
+            concurrency_safe   = #{concurrencySafe},
+            read_only          = #{readOnly},
+            external_execution = #{externalExecution},
+            destructive_hint   = #{destructiveHint},
+            idempotent_hint    = #{idempotentHint},
+            timeout_seconds    = #{timeoutSeconds},
+            retry_count        = #{retryCount},
+            cache_ttl_seconds  = #{cacheTtlSeconds},
+            icon               = #{icon},
+            publish_status     = #{publishStatus},
+            runtime_status     = #{runtimeStatus},
+            version            = #{version},
+            remark             = #{remark}
+        WHERE tool_id = #{toolId}
+    </update>
+
+</mapper>
