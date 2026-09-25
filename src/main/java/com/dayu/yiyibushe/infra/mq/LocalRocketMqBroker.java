@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotatedElementUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -62,23 +63,14 @@ public class LocalRocketMqBroker implements RocketMqTemplate {
     private final Map<String, List<ListenerBinding>> bindingMap = new ConcurrentHashMap<>();
 
     /** Spring 容器：用于扫描带 @RocketMqMessageListener 的消费者 bean */
-    private final ApplicationContext applicationContext;
+    @Autowired
+    private ApplicationContext applicationContext;
 
     /** 分发线程开关 */
     private volatile boolean running = true;
 
     /** 消费分发线程 */
     private Thread dispatcherThread;
-
-    /**
-     * 构造器
-     *
-     * @param applicationContext
-     *     Spring 容器
-     */
-    public LocalRocketMqBroker(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
 
     /**
      * 启动：扫描容器内全部 @RocketMqMessageListener 消费者并注册订阅，

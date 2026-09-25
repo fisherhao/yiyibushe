@@ -1,11 +1,8 @@
 package com.dayu.yiyibushe.app.ai.agent;
 
-import com.dayu.yiyibushe.infra.ai.agent.BaseAiAgent;
-import com.dayu.yiyibushe.infra.ai.connection.AgentScopeModelFactory;
 import com.dayu.yiyibushe.domain.ai.execution.ExecutionContext;
 import com.dayu.yiyibushe.domain.ai.execution.ExecutionResult;
-import com.dayu.yiyibushe.infra.ai.registry.ModelRegistry;
-import io.agentscope.core.state.AgentStateStore;
+import com.dayu.yiyibushe.infra.ai.agent.BaseAiAgent;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -15,7 +12,7 @@ import java.util.Objects;
  * 执行 Agent：把规划方案细化为具体的执行说明（为后续图片生成与合成提供指导）。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.2
+ * @version 0.0.3
  */
 @Component
 public class ExecuteAgent extends BaseAiAgent {
@@ -24,19 +21,19 @@ public class ExecuteAgent extends BaseAiAgent {
     private static final String SYSTEM_PROMPT = "你是穿搭执行师。请把规划方案转成一份可直接执行的穿衣合成说明，"
             + "明确每一步使用的衣物类型与画面要求，语言简洁。";
 
+    {
+        name = "execute-agent";
+        modelCode = "qwen-flash";
+    }
+
     /**
-     * 构造器
+     * 角色系统提示
      *
-     * @param modelRegistry
-     *     模型注册表
-     * @param modelFactory
-     *     AgentScope 模型工厂
-     * @param stateStore
-     *     AgentScope 会话状态存储
+     * @return 执行师提示词
      */
-    public ExecuteAgent(ModelRegistry modelRegistry, AgentScopeModelFactory modelFactory,
-            AgentStateStore stateStore) {
-        super("execute-agent", "deepseek-chat", SYSTEM_PROMPT, modelRegistry, modelFactory, stateStore);
+    @Override
+    protected String buildSystemPrompt() {
+        return SYSTEM_PROMPT;
     }
 
     /**

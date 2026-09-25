@@ -8,6 +8,7 @@ import com.dayu.yiyibushe.infra.flowtask.retry.RetryStrategy;
 import com.dayu.yiyibushe.infra.flowtask.retry.RetryStrategyRegistry;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -39,26 +40,14 @@ public class TaskEngine {
     /** 引擎内部防御：节点返回空结果时的失败原因 */
     private static final String NODE_RESULT_NULL_MESSAGE = "NODE_RESULT_NULL";
 
-    private final TaskNodeStrategy nodeStrategy;
-    private final RetryStrategyRegistry retryStrategyRegistry;
-    private final TaskStore taskStore;
+    @Autowired
+    private TaskNodeStrategy nodeStrategy;
 
-    /**
-     * 构造器
-     *
-     * @param nodeStrategy
-     *                              节点编排策略（业务侧显式编排的有序节点链）
-     * @param retryStrategyRegistry
-     *                              重试间隔策略注册解析器
-     * @param taskStore
-     *                              任务仓库
-     */
-    public TaskEngine(TaskNodeStrategy nodeStrategy, RetryStrategyRegistry retryStrategyRegistry,
-            TaskStore taskStore) {
-        this.nodeStrategy = nodeStrategy;
-        this.retryStrategyRegistry = retryStrategyRegistry;
-        this.taskStore = taskStore;
-    }
+    @Autowired
+    private RetryStrategyRegistry retryStrategyRegistry;
+
+    @Autowired
+    private TaskStore taskStore;
 
     /**
      * 触发一个任务：INIT -> RUNNING，然后 for-each 推进节点链。

@@ -6,6 +6,7 @@ import com.dayu.yiyibushe.common.ExecuteTemplate;
 import com.dayu.yiyibushe.domain.model.UserModel;
 import com.dayu.yiyibushe.web.dto.UserRequestDTO;
 import com.dayu.yiyibushe.web.dto.UserResponseDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,17 +30,8 @@ import java.util.List;
 public class UserController {
 
     /** 用户业务接口 */
-    private final UserService userService;
-
-    /**
-     * 构造器注入 UserService
-     *
-     * @param userService
-     *                    用户业务接口
-     */
-    public UserController(UserService userService) {
-        this.userService = userService;
-    }
+    @Autowired
+    private UserService userService;
 
     /**
      * 分页查询用户列表

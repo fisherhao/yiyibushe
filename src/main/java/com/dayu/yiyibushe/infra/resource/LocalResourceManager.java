@@ -3,6 +3,7 @@ package com.dayu.yiyibushe.infra.resource;
 import jakarta.annotation.PostConstruct;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -34,23 +35,14 @@ public class LocalResourceManager {
     /** 素材目录名 */
     public static final String ASSETS_DIR = "assets";
 
-    private final LocalResourceProperties properties;
+    @Autowired
+    private LocalResourceProperties properties;
 
     /** 资源根目录（绝对路径） */
     private Path rootDir;
 
     /** 素材目录 */
     private Path assetsDir;
-
-    /**
-     * 构造器
-     *
-     * @param properties
-     *     本地资源配置
-     */
-    public LocalResourceManager(LocalResourceProperties properties) {
-        this.properties = properties;
-    }
 
     /**
      * 初始化并确保根目录与 assets 目录存在

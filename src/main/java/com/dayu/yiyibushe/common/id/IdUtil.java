@@ -4,6 +4,8 @@ import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.dao.sequence.SequenceDao;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -61,21 +63,22 @@ public class IdUtil {
     /** 时间部分最低基数（确保 7 位范围下限，首位非零） */
     private static final long TIME_BASE = 1_000_000L;
 
-    /** 发号序列 DAO（复用 sequence 表的号段取号能力）；由 Spring 启动时注入静态引用 */
+    /** 发号序列 DAO 静态引用：@PostConstruct 时由注入实例转存，供静态方法使用 */
     private static volatile SequenceDao sequenceDao;
+
+    /** 发号序列 DAO：Spring 字段注入，@PostConstruct 时转存静态引用供静态方法使用 */
+    @Autowired
+    private SequenceDao injectedSequenceDao;
 
     /** bizType -> 当前号段缓冲（含当前序号 / 最大序号 / 锁对象） */
     private static final ConcurrentMap<String, IdSegmentBuffer> bufferByBiz = new ConcurrentHashMap<>();
 
     /**
-     * 构造器注入发号序列 DAO：Spring 启动时把注入的实例存入静态引用，
-     * 供静态方法 {@code nextId()} 直接使用（无需调用方注入本类）。
-     *
-     * @param sequenceDao
-     *                    发号序列 DAO（sequence 表号段取号）
+     * 注入完成后把 DAO 实例存入静态引用，供静态方法 {@code nextId()} 使用
      */
-    public IdUtil(SequenceDao sequenceDao) {
-        IdUtil.sequenceDao = sequenceDao;
+    @PostConstruct
+    public void initStaticReference() {
+        sequenceDao = injectedSequenceDao;
     }
 
     /**

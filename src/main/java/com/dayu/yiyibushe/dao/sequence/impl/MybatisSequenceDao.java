@@ -5,6 +5,7 @@ import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.dao.mybatis.SequenceMybatisMapper;
 import com.dayu.yiyibushe.dao.sequence.SequenceDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,17 +26,8 @@ import java.util.Objects;
 public class MybatisSequenceDao implements SequenceDao {
 
     /** sequence 表的 MyBatis Mapper */
-    private final SequenceMybatisMapper sequenceMybatisMapper;
-
-    /**
-     * 构造器注入 Mapper
-     *
-     * @param sequenceMybatisMapper
-     *                              sequence 表 Mapper
-     */
-    public MybatisSequenceDao(SequenceMybatisMapper sequenceMybatisMapper) {
-        this.sequenceMybatisMapper = sequenceMybatisMapper;
-    }
+    @Autowired
+    private SequenceMybatisMapper sequenceMybatisMapper;
 
     /**
      * 按序列名取下一段号码的上界（号段区间为 [返回上界 - 段长 + 1, 返回上界]）。

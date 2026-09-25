@@ -16,6 +16,7 @@ import com.dayu.yiyibushe.infra.auth.LoginPrincipal;
 import com.dayu.yiyibushe.infra.storage.StorageService;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -50,29 +51,17 @@ public class OutfitServiceImpl implements OutfitService {
             AssetCategory.SOCKS,
             AssetCategory.SHOES, AssetCategory.HAT);
 
-    private final AiPlatformService aiPlatformService;
-    private final StorageService storageService;
-    private final PersonalAssetService personalAssetService;
+    @Autowired
+    private AiPlatformService aiPlatformService;
+
+    @Autowired
+    private StorageService storageService;
+
+    @Autowired
+    private PersonalAssetService personalAssetService;
 
     /** 任务结果存储（内存，未来可换 Redis） */
     private final Map<String, TryOnTaskResult> resultStore = new ConcurrentHashMap<>();
-
-    /**
-     * 构造器
-     *
-     * @param aiPlatformService
-     *                             AI 平台服务
-     * @param storageService
-     *                             存储服务
-     * @param personalAssetService
-     *                             个人素材服务（素材列表从 asset 表查）
-     */
-    public OutfitServiceImpl(AiPlatformService aiPlatformService, StorageService storageService,
-            PersonalAssetService personalAssetService) {
-        this.aiPlatformService = aiPlatformService;
-        this.storageService = storageService;
-        this.personalAssetService = personalAssetService;
-    }
 
     /**
      * 提交套装生成：解析人物图与衣物后按固定顺序链式虚拟试穿，阻塞返回最终任务 ID

@@ -17,6 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -40,21 +41,11 @@ public class AuthController {
     /** 登录态 Cookie 保持时长：7 天（服务端会话另有不活跃超时） */
     private static final Duration SESSION_TTL = Duration.ofDays(7);
 
-    private final AuthService authService;
-    private final SessionManager sessionManager;
+    @Autowired
+    private AuthService authService;
 
-    /**
-     * 构造器
-     *
-     * @param authService
-     *                       认证服务
-     * @param sessionManager
-     *                       会话管理器
-     */
-    public AuthController(AuthService authService, SessionManager sessionManager) {
-        this.authService = authService;
-        this.sessionManager = sessionManager;
-    }
+    @Autowired
+    private SessionManager sessionManager;
 
     /**
      * 注册：注册成功直接创建会话并写 Cookie，免再次登录

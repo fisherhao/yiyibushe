@@ -5,6 +5,7 @@ import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.dao.mybatis.FlowTaskMybatisMapper;
 import com.dayu.yiyibushe.dao.mybatis.TaskNodeMybatisMapper;
 import com.dayu.yiyibushe.dao.mybatis.TaskNodePO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,24 +33,12 @@ public class TaskStore {
     /** 发号说明：主键 id 由数据库自增；业务 ID（task_id / task_node_id）由 {@link IdUtil} 生成 18 位分段 ID */
 
     /** 任务主表 Mapper（XML 形式） */
-    private final FlowTaskMybatisMapper flowTaskMybatisMapper;
+    @Autowired
+    private FlowTaskMybatisMapper flowTaskMybatisMapper;
 
     /** 节点记录表 Mapper（XML 形式） */
-    private final TaskNodeMybatisMapper taskNodeMybatisMapper;
-
-    /**
-     * 构造器注入两个 Mapper
-     *
-     * @param flowTaskMybatisMapper
-     *     任务主表 Mapper
-     * @param taskNodeMybatisMapper
-     *     节点记录表 Mapper
-     */
-    public TaskStore(FlowTaskMybatisMapper flowTaskMybatisMapper,
-            TaskNodeMybatisMapper taskNodeMybatisMapper) {
-        this.flowTaskMybatisMapper = flowTaskMybatisMapper;
-        this.taskNodeMybatisMapper = taskNodeMybatisMapper;
-    }
+    @Autowired
+    private TaskNodeMybatisMapper taskNodeMybatisMapper;
 
     /**
      * 新增或更新任务主表行：taskId 为空时由 {@link IdUtil} 发 18 位业务 ID（主键 id 由数据库自增），

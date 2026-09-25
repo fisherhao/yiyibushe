@@ -9,6 +9,7 @@ import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.dao.mapper.UserMapper;
 import com.dayu.yiyibushe.dao.po.UserPO;
 import com.dayu.yiyibushe.infra.auth.LoginPrincipal;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -29,17 +30,8 @@ public class AuthServiceImpl implements AuthService {
     /** 用户正常状态 */
     private static final int USER_STATUS_ACTIVE = 1;
 
-    private final UserMapper userMapper;
-
-    /**
-     * 构造器
-     *
-     * @param userMapper
-     *     用户数据访问接口
-     */
-    public AuthServiceImpl(UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 注册：用户名非空且不重复，密码 PBKDF2 加盐后落库

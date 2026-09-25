@@ -6,6 +6,7 @@ import com.dayu.yiyibushe.common.id.IdUtil;
 import com.dayu.yiyibushe.dao.mapper.UserMapper;
 import com.dayu.yiyibushe.dao.mybatis.UserMybatisMapper;
 import com.dayu.yiyibushe.dao.po.UserPO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -27,17 +28,8 @@ import java.util.Objects;
 public class MysqlUserMapper implements UserMapper {
 
     /** 用户表的 MyBatis Mapper（XML 形式） */
-    private final UserMybatisMapper userMybatisMapper;
-
-    /**
-     * 构造器注入 MyBatis Mapper
-     *
-     * @param userMybatisMapper
-     *     用户表 MyBatis Mapper
-     */
-    public MysqlUserMapper(UserMybatisMapper userMybatisMapper) {
-        this.userMybatisMapper = userMybatisMapper;
-    }
+    @Autowired
+    private UserMybatisMapper userMybatisMapper;
 
     /**
      * 按业务用户 ID 查询用户

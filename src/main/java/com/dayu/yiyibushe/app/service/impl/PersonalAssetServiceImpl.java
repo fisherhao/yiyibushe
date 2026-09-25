@@ -11,6 +11,7 @@ import com.dayu.yiyibushe.domain.asset.AssetCategory;
 import com.dayu.yiyibushe.domain.asset.AssetItem;
 import com.dayu.yiyibushe.infra.auth.LoginPrincipal;
 import com.dayu.yiyibushe.infra.storage.StorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -46,23 +47,12 @@ public class PersonalAssetServiceImpl implements PersonalAssetService {
     /** 图片有效期（天）：过期后列表不再展示 */
     private static final int ASSET_EXPIRE_DAYS = 7;
 
-    private final StorageService storageService;
+    @Autowired
+    private StorageService storageService;
 
     /** 素材表 Mapper（XML 形式） */
-    private final AssetMybatisMapper assetMybatisMapper;
-
-    /**
-     * 构造器注入存储服务与素材 Mapper
-     *
-     * @param storageService
-     *     存储服务（文件本体）
-     * @param assetMybatisMapper
-     *     素材表 Mapper（链接与归属关系落库）
-     */
-    public PersonalAssetServiceImpl(StorageService storageService, AssetMybatisMapper assetMybatisMapper) {
-        this.storageService = storageService;
-        this.assetMybatisMapper = assetMybatisMapper;
-    }
+    @Autowired
+    private AssetMybatisMapper assetMybatisMapper;
 
     /**
      * 上传一张图片

@@ -9,6 +9,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
 
 import java.util.Objects;
@@ -19,6 +21,7 @@ import java.util.Objects;
  * @author Witty·Kid Fisher
  * @version 0.0.1
  */
+@Component
 public class LoginInterceptor implements HandlerInterceptor {
 
     /** 会话 Cookie 名 */
@@ -27,17 +30,8 @@ public class LoginInterceptor implements HandlerInterceptor {
     /** 请求属性中的登录主体 key */
     public static final String PRINCIPAL_ATTR = "loginPrincipal";
 
-    private final SessionManager sessionManager;
-
-    /**
-     * 构造器
-     *
-     * @param sessionManager
-     *     会话管理器
-     */
-    public LoginInterceptor(SessionManager sessionManager) {
-        this.sessionManager = sessionManager;
-    }
+    @Autowired
+    private SessionManager sessionManager;
 
     /**
      * 校验会话：有效则放行并挂登录主体；接口返 401，页面跳登录页

@@ -2,6 +2,7 @@ package com.dayu.yiyibushe.infra.flowtask;
 
 import com.dayu.yiyibushe.infra.mq.RocketMqListener;
 import com.dayu.yiyibushe.infra.mq.RocketMqMessageListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,17 +19,8 @@ import org.springframework.stereotype.Component;
 @RocketMqMessageListener(topic = TaskCallbackMessage.TOPIC, consumerGroup = "yiyibushe-task-callback-consumer")
 public class TaskCallbackListener implements RocketMqListener<TaskCallbackMessage> {
 
-    private final TaskEngine taskEngine;
-
-    /**
-     * 构造器
-     *
-     * @param taskEngine
-     *     任务执行引擎
-     */
-    public TaskCallbackListener(TaskEngine taskEngine) {
-        this.taskEngine = taskEngine;
-    }
+    @Autowired
+    private TaskEngine taskEngine;
 
     /**
      * 消费回调消息并交给引擎处理

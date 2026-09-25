@@ -7,6 +7,7 @@ import com.dayu.yiyibushe.infra.flowtask.FlowTaskTemplate;
 import com.dayu.yiyibushe.infra.flowtask.TaskEngine;
 import com.dayu.yiyibushe.web.dto.CreateFlowTaskDTO;
 import com.dayu.yiyibushe.web.dto.TriggerFlowTaskDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -29,23 +30,12 @@ import java.util.Objects;
 public class FlowTaskController {
 
     /** 任务模板：创建任务、查询详情 */
-    private final FlowTaskTemplate flowTaskTemplate;
+    @Autowired
+    private FlowTaskTemplate flowTaskTemplate;
 
     /** 任务引擎：触发执行、接收回调 */
-    private final TaskEngine taskEngine;
-
-    /**
-     * 构造器注入
-     *
-     * @param flowTaskTemplate
-     *     任务模板
-     * @param taskEngine
-     *     任务引擎
-     */
-    public FlowTaskController(FlowTaskTemplate flowTaskTemplate, TaskEngine taskEngine) {
-        this.flowTaskTemplate = flowTaskTemplate;
-        this.taskEngine = taskEngine;
-    }
+    @Autowired
+    private TaskEngine taskEngine;
 
     /**
      * 创建任务：按任务类型生成节点链快照并入库存档，返回自增任务 ID

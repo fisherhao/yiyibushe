@@ -1,8 +1,8 @@
 package com.dayu.yiyibushe.infra.config;
 
-import com.dayu.yiyibushe.infra.auth.SessionManager;
 import com.dayu.yiyibushe.infra.resource.LocalResourceManager;
 import com.dayu.yiyibushe.web.interceptor.LoginInterceptor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
@@ -18,21 +18,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
-    private final SessionManager sessionManager;
-    private final LocalResourceManager resourceManager;
+    @Autowired
+    private LoginInterceptor loginInterceptor;
 
-    /**
-     * 构造器
-     *
-     * @param sessionManager
-     *     会话管理器
-     * @param resourceManager
-     *     本地临时资源管理器
-     */
-    public WebConfig(SessionManager sessionManager, LocalResourceManager resourceManager) {
-        this.sessionManager = sessionManager;
-        this.resourceManager = resourceManager;
-    }
+    @Autowired
+    private LocalResourceManager resourceManager;
 
     /**
      * 全局跨域规则
@@ -58,7 +48,7 @@ public class WebConfig implements WebMvcConfigurer {
      */
     @Override
     public void addInterceptors(InterceptorRegistry registry) {
-        registry.addInterceptor(new LoginInterceptor(sessionManager))
+        registry.addInterceptor(loginInterceptor)
                 .addPathPatterns("/**")
                 .excludePathPatterns(
                         // 认证域页面（仅放行登录、注册、找回密码三页，衣橱页必须登录）
@@ -75,6 +65,11 @@ public class WebConfig implements WebMvcConfigurer {
                         "/api/auth/register",
                         "/api/auth/logout",
                         "/api/auth/reset-password",
+                        // 对话演示接口（自然语言触发天气/新闻技能，免登录便于本地验证）
+                        "/api/chat/**",
+                        // 技能演示首页（单输入框 + 全链路时间线，免登录）
+                        "/",
+                        "/index.html",
                         // 公共静态资源
                         "/common/**",
                         // 本地素材访问与容器兜底路径

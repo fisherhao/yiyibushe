@@ -4,6 +4,7 @@ import com.dayu.yiyibushe.common.exception.BizErrorCode;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,17 +22,8 @@ import java.util.Objects;
 @Component
 public class CredentialManager {
 
-    private final CredentialStore credentialStore;
-
-    /**
-     * 构造器
-     *
-     * @param credentialStore
-     *     凭证存储接口
-     */
-    public CredentialManager(CredentialStore credentialStore) {
-        this.credentialStore = credentialStore;
-    }
+    @Autowired
+    private CredentialStore credentialStore;
 
     /**
      * 获取完整凭证，不存在或密钥为空则抛业务异常

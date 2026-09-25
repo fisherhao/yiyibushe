@@ -10,6 +10,7 @@ import com.dayu.yiyibushe.dao.po.UserPO;
 import com.dayu.yiyibushe.dao.mapper.UserMapper;
 import com.dayu.yiyibushe.domain.model.UserModel;
 import com.dayu.yiyibushe.app.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -24,17 +25,8 @@ import java.util.Objects;
 @Service
 public class UserServiceImpl implements UserService {
 
-    private final UserMapper userMapper;
-
-    /**
-     * 构造器注入 UserMapper
-     *
-     * @param userMapper
-     *     用户数据访问接口
-     */
-    public UserServiceImpl(UserMapper userMapper) {
-        this.userMapper = userMapper;
-    }
+    @Autowired
+    private UserMapper userMapper;
 
     /**
      * 根据请求条件查询用户列表

@@ -9,8 +9,10 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 /**
  * 集合工具类（内部使用 Apache Commons Collections4 实现，对外屏蔽底层依赖）。
@@ -42,7 +44,8 @@ public final class CollectionUtilExt {
      * 判断集合是否为 null 或空
      *
      * @param collection
-     *                   待判断集合
+     *         待判断集合
+     *
      * @return true 表示为 null 或没有元素
      */
     public static boolean isEmpty(Collection<?> collection) {
@@ -53,7 +56,8 @@ public final class CollectionUtilExt {
      * 判断集合是否非空
      *
      * @param collection
-     *                   待判断集合
+     *         待判断集合
+     *
      * @return true 表示至少有一个元素
      */
     public static boolean isNotEmpty(Collection<?> collection) {
@@ -64,7 +68,8 @@ public final class CollectionUtilExt {
      * 判断 Map 是否为 null 或空
      *
      * @param map
-     *            待判断 Map
+     *         待判断 Map
+     *
      * @return true 表示为 null 或没有键值对
      */
     public static boolean isEmpty(Map<?, ?> map) {
@@ -75,7 +80,8 @@ public final class CollectionUtilExt {
      * 判断 Map 是否非空
      *
      * @param map
-     *            待判断 Map
+     *         待判断 Map
+     *
      * @return true 表示至少有一个键值对
      */
     public static boolean isNotEmpty(Map<?, ?> map) {
@@ -88,7 +94,8 @@ public final class CollectionUtilExt {
      * 获取集合大小（null 安全）
      *
      * @param collection
-     *                   待统计集合
+     *         待统计集合
+     *
      * @return 元素个数，null 返回 0
      */
     public static int getSize(Collection<?> collection) {
@@ -99,7 +106,8 @@ public final class CollectionUtilExt {
      * 获取 Map 大小（null 安全）
      *
      * @param map
-     *            待统计 Map
+     *         待统计 Map
+     *
      * @return 键值对个数，null 返回 0
      */
     public static int getSize(Map<?, ?> map) {
@@ -112,9 +120,10 @@ public final class CollectionUtilExt {
      * 集合是否包含指定元素（null 安全）
      *
      * @param collection
-     *                   待检查集合
+     *         待检查集合
      * @param value
-     *                   目标元素
+     *         目标元素
+     *
      * @return true 表示包含
      */
     public static boolean contains(Collection<?> collection, Object value) {
@@ -125,9 +134,10 @@ public final class CollectionUtilExt {
      * Map 是否包含指定 key（null 安全）
      *
      * @param map
-     *            待检查 Map
+     *         待检查 Map
      * @param key
-     *            目标 key
+     *         目标 key
+     *
      * @return true 表示包含
      */
     public static boolean containsKey(Map<?, ?> map, Object key) {
@@ -138,9 +148,10 @@ public final class CollectionUtilExt {
      * Map 是否包含指定 value（null 安全）
      *
      * @param map
-     *              待检查 Map
+     *         待检查 Map
      * @param value
-     *              目标 value
+     *         目标 value
+     *
      * @return true 表示包含
      */
     public static boolean containsValue(Map<?, ?> map, Object value) {
@@ -153,11 +164,12 @@ public final class CollectionUtilExt {
      * 查找第一个满足条件的元素
      *
      * @param collection
-     *                   待查找集合
+     *         待查找集合
      * @param predicate
-     *                   匹配条件
+     *         匹配条件
      * @param <T>
-     *                   元素类型
+     *         元素类型
+     *
      * @return 第一个匹配元素，没有匹配返回 null
      */
     public static <T> T findFirst(Collection<T> collection, Predicate<? super T> predicate) {
@@ -172,15 +184,44 @@ public final class CollectionUtilExt {
         return null;
     }
 
+    public static <T> Stream<T> toStream(Collection<T> collection) {
+        return Optional.ofNullable(collection).stream().flatMap(Collection::stream);
+    }
+
+    /**
+     * Map -> Stream<Map.Entry<K,V>>，null 返回空流
+     */
+    public static <K, V> Stream<Map.Entry<K, V>> toEntryStream(Map<K, V> map) {
+        return Optional.ofNullable(map)
+                .map(Map::entrySet).stream().flatMap(Collection::stream);
+    }
+
+    /**
+     * Map -> Stream<K>，只取 key，null 返回空流
+     */
+    public static <K, V> Stream<K> toKeyStream(Map<K, V> map) {
+        return Optional.ofNullable(map)
+                .map(Map::keySet).stream().flatMap(Collection::stream);
+    }
+
+    /**
+     * Map -> Stream<V>，只取 value，null 返回空流
+     */
+    public static <K, V> Stream<V> toValueStream(Map<K, V> map) {
+        return Optional.ofNullable(map)
+                .map(Map::values).stream().flatMap(Collection::stream);
+    }
+
     /**
      * 过滤出所有满足条件的元素
      *
      * @param collection
-     *                   待过滤集合
+     *         待过滤集合
      * @param predicate
-     *                   匹配条件
+     *         匹配条件
      * @param <T>
-     *                   元素类型
+     *         元素类型
+     *
      * @return 匹配元素组成的新列表，入参为 null 时返回空列表
      */
     public static <T> List<T> filterToList(Collection<T> collection, Predicate<? super T> predicate) {
@@ -200,13 +241,14 @@ public final class CollectionUtilExt {
      * 将集合元素逐个转换后收集为新列表
      *
      * @param collection
-     *                   源集合
+     *         源集合
      * @param mapper
-     *                   元素转换函数
+     *         元素转换函数
      * @param <S>
-     *                   源元素类型
+     *         源元素类型
      * @param <T>
-     *                   目标元素类型
+     *         目标元素类型
+     *
      * @return 转换结果列表，入参为 null 时返回空列表
      */
     public static <S, T> List<T> mapToList(Collection<S> collection, Function<? super S, ? extends T> mapper) {
@@ -224,11 +266,12 @@ public final class CollectionUtilExt {
      * 按比较器取最大元素
      *
      * @param collection
-     *                   待统计集合
+     *         待统计集合
      * @param comparator
-     *                   比较器
+     *         比较器
      * @param <T>
-     *                   元素类型
+     *         元素类型
+     *
      * @return 最大元素，集合为 null 或空时返回 null
      */
     public static <T> T getMax(Collection<T> collection, Comparator<? super T> comparator) {
@@ -248,11 +291,12 @@ public final class CollectionUtilExt {
      * 从可变集合中删除所有满足条件的元素
      *
      * @param collection
-     *                   待处理集合
+     *         待处理集合
      * @param predicate
-     *                   删除条件
+     *         删除条件
      * @param <T>
-     *                   元素类型
+     *         元素类型
+     *
      * @return 实际删除的元素个数
      */
     public static <T> int removeMatched(Collection<T> collection, Predicate<? super T> predicate) {
@@ -276,11 +320,12 @@ public final class CollectionUtilExt {
      * 并集
      *
      * @param first
-     *               集合 A
+     *         集合 A
      * @param second
-     *               集合 B
+     *         集合 B
      * @param <T>
-     *               元素类型
+     *         元素类型
+     *
      * @return 并集集合
      */
     public static <T> Collection<T> union(Collection<T> first, Collection<T> second) {
@@ -291,11 +336,12 @@ public final class CollectionUtilExt {
      * 交集
      *
      * @param first
-     *               集合 A
+     *         集合 A
      * @param second
-     *               集合 B
+     *         集合 B
      * @param <T>
-     *               元素类型
+     *         元素类型
+     *
      * @return 交集集合
      */
     public static <T> Collection<T> intersection(Collection<T> first, Collection<T> second) {
@@ -306,11 +352,12 @@ public final class CollectionUtilExt {
      * 差集（A - B）
      *
      * @param first
-     *               集合 A
+     *         集合 A
      * @param second
-     *               集合 B
+     *         集合 B
      * @param <T>
-     *               元素类型
+     *         元素类型
+     *
      * @return 差集集合
      */
     public static <T> Collection<T> subtract(Collection<T> first, Collection<T> second) {
@@ -323,9 +370,10 @@ public final class CollectionUtilExt {
      * 从 Map 取 Object 值
      *
      * @param map
-     *            数据源 Map
+     *         数据源 Map
      * @param key
-     *            键
+     *         键
+     *
      * @return 值，Map 为 null 或键不存在时返回 null
      */
     public static Object getObject(Map<?, ?> map, Object key) {
@@ -336,9 +384,10 @@ public final class CollectionUtilExt {
      * 从 Map 取 String 值
      *
      * @param map
-     *            数据源 Map
+     *         数据源 Map
      * @param key
-     *            键
+     *         键
+     *
      * @return 字符串值，不存在返回 null
      */
     public static String getString(Map<?, ?> map, Object key) {
@@ -350,9 +399,10 @@ public final class CollectionUtilExt {
      * 从 Map 取 Integer 值
      *
      * @param map
-     *            数据源 Map
+     *         数据源 Map
      * @param key
-     *            键
+     *         键
+     *
      * @return Integer 值，不存在返回 null
      */
     public static Integer getInteger(Map<?, ?> map, Object key) {
@@ -370,9 +420,10 @@ public final class CollectionUtilExt {
      * 从 Map 取 Long 值
      *
      * @param map
-     *            数据源 Map
+     *         数据源 Map
      * @param key
-     *            键
+     *         键
+     *
      * @return Long 值，不存在返回 null
      */
     public static Long getLong(Map<?, ?> map, Object key) {
@@ -390,9 +441,10 @@ public final class CollectionUtilExt {
      * 从 Map 取 Boolean 值
      *
      * @param map
-     *            数据源 Map
+     *         数据源 Map
      * @param key
-     *            键
+     *         键
+     *
      * @return Boolean 值，不存在返回 null
      */
     public static Boolean getBoolean(Map<?, ?> map, Object key) {

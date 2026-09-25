@@ -6,6 +6,7 @@ import com.dayu.yiyibushe.infra.ai.registry.ModelDefinition;
 import io.agentscope.core.model.Model;
 import io.agentscope.extensions.model.dashscope.DashScopeChatModel;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -32,18 +33,8 @@ public class AgentScopeModelFactory {
     /** DashScope 厂商标识（原生协议走 DashScope 专用模型类） */
     private static final String PROVIDER_DASHSCOPE = "dashscope";
 
-    /** 凭证管理器 */
-    private final CredentialManager credentialManager;
-
-    /**
-     * 构造器
-     *
-     * @param credentialManager
-     *     凭证管理器
-     */
-    public AgentScopeModelFactory(CredentialManager credentialManager) {
-        this.credentialManager = credentialManager;
-    }
+    @Autowired
+    private CredentialManager credentialManager;
 
     /**
      * 创建 AgentScope 对话模型：密钥缺失时抛出业务异常

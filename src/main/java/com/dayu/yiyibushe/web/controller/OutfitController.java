@@ -7,6 +7,7 @@ import com.dayu.yiyibushe.domain.tryon.OutfitGenerateRequest;
 import com.dayu.yiyibushe.domain.tryon.TryOnTaskResult;
 import com.dayu.yiyibushe.web.interceptor.LoginUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,21 +28,11 @@ import java.util.Map;
 @RequestMapping("/api/outfit")
 public class OutfitController {
 
-    private final OutfitService outfitService;
-    private final ShareService shareService;
+    @Autowired
+    private OutfitService outfitService;
 
-    /**
-     * 构造器
-     *
-     * @param outfitService
-     *     套装服务
-     * @param shareService
-     *     分享服务
-     */
-    public OutfitController(OutfitService outfitService, ShareService shareService) {
-        this.outfitService = outfitService;
-        this.shareService = shareService;
-    }
+    @Autowired
+    private ShareService shareService;
 
     /**
      * 提交套装生成

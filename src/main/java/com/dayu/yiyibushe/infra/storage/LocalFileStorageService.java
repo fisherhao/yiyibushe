@@ -8,6 +8,7 @@ import jakarta.annotation.PostConstruct;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -41,19 +42,11 @@ public class LocalFileStorageService implements StorageService {
     /** 本地文件的 URL 访问前缀（与 WebConfig 资源映射对应） */
     private static final String URL_PREFIX = "/local-files/";
 
-    private final LocalResourceManager resourceManager;
+    @Autowired
+    private LocalResourceManager resourceManager;
+
     /** 素材根目录 */
     private Path assetRoot;
-
-    /**
-     * 构造器
-     *
-     * @param resourceManager
-     *                        本地临时资源管理器
-     */
-    public LocalFileStorageService(LocalResourceManager resourceManager) {
-        this.resourceManager = resourceManager;
-    }
 
     /**
      * 初始化素材根目录

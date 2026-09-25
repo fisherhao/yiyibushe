@@ -5,6 +5,7 @@ import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.infra.storage.StorageService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -19,17 +20,8 @@ import java.time.Duration;
 @Service
 public class ShareServiceImpl implements ShareService {
 
-    private final StorageService ossService;
-
-    /**
-     * 构造器
-     *
-     * @param ossService
-     *     存储服务
-     */
-    public ShareServiceImpl(StorageService ossService) {
-        this.ossService = ossService;
-    }
+    @Autowired
+    private StorageService ossService;
 
     /**
      * 构建分享链接：外链直接透传，存储 key 生成 1 小时有效的预签名 URL

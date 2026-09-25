@@ -7,6 +7,7 @@ import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -33,21 +34,11 @@ public class FlowTaskTemplate {
     /** 默认最大重试次数 */
     public static final int DEFAULT_MAX_RETRY = 3;
 
-    private final TaskNodeStrategy nodeStrategy;
-    private final TaskStore taskStore;
+    @Autowired
+    private TaskNodeStrategy nodeStrategy;
 
-    /**
-     * 构造器
-     *
-     * @param nodeStrategy
-     *                     节点编排策略
-     * @param taskStore
-     *                     任务仓库
-     */
-    public FlowTaskTemplate(TaskNodeStrategy nodeStrategy, TaskStore taskStore) {
-        this.nodeStrategy = nodeStrategy;
-        this.taskStore = taskStore;
-    }
+    @Autowired
+    private TaskStore taskStore;
 
     /**
      * 使用默认参数创建任务：默认优先级、最大重试 3 次、重试策略走全局默认

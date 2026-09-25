@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>技能对话演示 · 天气与科技新闻</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+            background: #f4f6fa;
+            color: #1f2937;
+            line-height: 1.6;
+            padding: 32px 16px 64px;
+        }
+
+        .container {
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 24px;
+        }
+
+        /* 单一输入区 */
+        .ask-bar {
+            display: flex;
+            gap: 10px;
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.05);
+        }
+
+        #questionInput {
+            flex: 1;
+            border: none;
+            outline: none;
+            font-size: 15px;
+            padding: 10px 12px;
+            background: transparent;
+            color: #1f2937;
+        }
+
+        #sendButton {
+            border: none;
+            background: #2563eb;
+            color: #fff;
+            font-size: 14px;
+            font-weight: 500;
+            padding: 10px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background .15s;
+        }
+
+        #sendButton:hover {
+            background: #1d4ed8;
+        }
+
+        #sendButton:disabled {
+            background: #93b4f5;
+            cursor: not-allowed;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-top: 10px;
+        }
+
+        /* 结果区 */
+        .result-area {
+            margin-top: 28px;
+            display: none;
+        }
+
+        .card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 18px 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+        }
+
+        .card-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-title::before {
+            content: "";
+            width: 4px;
+            height: 14px;
+            background: #2563eb;
+            border-radius: 2px;
+        }
+
+        #answerContent {
+            font-size: 15px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        /* 技能 / 工具标签 */
+        .tag-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .tag-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .tag-label {
+            font-size: 12px;
+            color: #9ca3af;
+            align-self: center;
+            min-width: 64px;
+        }
+
+        .tag {
+            font-size: 12.5px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-weight: 500;
+        }
+
+        .tag-skill {
+            background: #ecfdf5;
+            color: #047857;
+            border: 1px solid #a7f3d0;
+        }
+
+        .tag-tool {
+            background: #ecfeff;
+            color: #0e7490;
+            border: 1px solid #a5f3fc;
+        }
+
+        .tag-none {
+            background: #f3f4f6;
+            color: #9ca3af;
+            border: 1px solid #e5e7eb;
+        }
+
+        /* 时间线 */
+        .timeline {
+            list-style: none;
+        }
+
+        .timeline-item {
+            position: relative;
+            padding: 0 0 18px 26px;
+            border-left: 2px solid #e5e7eb;
+        }
+
+        .timeline-item:last-child {
+            border-left-color: transparent;
+            padding-bottom: 0;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -7px;
+            top: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 0 0 1px rgba(0, 0, 0, .08);
+        }
+
+        .phase-REQUEST { background: #3b82f6; }
+        .phase-AGENT   { background: #8b5cf6; }
+        .phase-LLM     { background: #f59e0b; }
+        .phase-SKILL   { background: #10b981; }
+        .phase-TOOL    { background: #06b6d4; }
+        .phase-RESPONSE{ background: #64748b; }
+
+        .timeline-index {
+            font-size: 12px;
+            color: #9ca3af;
+            margin-right: 8px;
+        }
+
+        .timeline-phase {
+            font-size: 11px;
+            font-weight: 600;
+            padding: 1px 7px;
+            border-radius: 4px;
+            color: #fff;
+            margin-right: 8px;
+            vertical-align: 1px;
+        }
+
+        .timeline-content {
+            font-size: 13.5px;
+            color: #374151;
+        }
+
+        .timeline-meta {
+            font-size: 11.5px;
+            color: #9ca3af;
+            margin-top: 3px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 20px;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #cbd5e1;
+            border-top-color: #2563eb;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            vertical-align: -2px;
+            margin-right: 6px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>技能对话演示</h1>
+    <p class="subtitle">当前仅支持「天气查询」与「科技新闻速递」两个技能，由大模型判断并自动调用。</p>
+
+    <div class="ask-bar">
+        <input id="questionInput" type="text" autocomplete="off"
+               placeholder="输入你的问题，例如：北京今天天气怎么样？">
+        <button id="sendButton">发送</button>
+    </div>
+    <p class="hint">一句话里同时问天气和新闻，两个技能会一起调用；问其他问题将提示超出范畴。</p>
+
+    <div class="loading" id="loadingBox">
+        <span class="spinner"></span>大模型正在思考并执行技能链路，请稍候……
+    </div>
+
+    <div class="result-area" id="resultArea">
+        <div class="card">
+            <div class="card-title">回答</div>
+            <div id="answerContent"></div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">技能 / 工具加载情况</div>
+            <div class="tag-group">
+                <span class="tag-label">命中技能</span>
+                <span id="skillTags"></span>
+            </div>
+            <div class="tag-group">
+                <span class="tag-label">调用工具</span>
+                <span id="toolTags"></span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-title">全链路执行步骤</div>
+            <ul class="timeline" id="timeline"></ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    const questionInput = document.getElementById('questionInput');
+    const sendButton = document.getElementById('sendButton');
+    const loadingBox = document.getElementById('loadingBox');
+    const resultArea = document.getElementById('resultArea');
+    const answerContent = document.getElementById('answerContent');
+    const skillTags = document.getElementById('skillTags');
+    const toolTags = document.getElementById('toolTags');
+    const timeline = document.getElementById('timeline');
+
+    /** 发送问题 */
+    function sendQuestion() {
+        const message = questionInput.value.trim();
+
+        // 空内容不发起请求（"什么都不问"时页面保持安静）
+        if (!message) {
+            questionInput.focus();
+            return;
+        }
+
+        setLoading(true);
+        resultArea.style.display = 'none';
+
+        fetch('/api/chat/message', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({message: message})
+        })
+            .then(response => response.json())
+            .then(data => renderResult(data))
+            .catch(error => {
+                answerContent.textContent = '请求失败：' + error.message;
+                resultArea.style.display = 'block';
+            })
+            .finally(() => setLoading(false));
+    }
+
+    /** 切换加载态 */
+    function setLoading(loading) {
+        sendButton.disabled = loading;
+        questionInput.disabled = loading;
+        loadingBox.classList.toggle('active', loading);
+    }
+
+    /** 渲染回答、标签与时间线 */
+    function renderResult(data) {
+        answerContent.textContent = data.answer || '';
+
+        skillTags.innerHTML = renderTags(data.hitSkills, 'tag-skill');
+        toolTags.innerHTML = renderTags(data.hitTools, 'tag-tool');
+        timeline.innerHTML = (data.steps || []).map(renderTimelineItem).join('');
+
+        resultArea.style.display = 'block';
+    }
+
+    /** 渲染标签组；无命中时显示"未加载" */
+    function renderTags(names, tagClass) {
+        if (!names || names.length === 0) {
+            return '<span class="tag tag-none">未加载</span>';
+        }
+        return names.map(name => '<span class="tag ' + tagClass + '">' + escapeHtml(name) + '</span>').join('');
+    }
+
+    /** 渲染单个时间线步骤 */
+    function renderTimelineItem(step) {
+        const phase = escapeHtml(step.phase);
+        const durationText = step.durationMillis != null ? ' · 耗时 ' + step.durationMillis + ' ms' : '';
+        return '<li class="timeline-item">'
+            + '<span class="timeline-dot phase-' + phase + '"></span>'
+            + '<div class="timeline-content">'
+            + '<span class="timeline-index">步骤 ' + step.index + '</span>'
+            + '<span class="timeline-phase phase-' + phase + '">' + phase + '</span>'
+            + escapeHtml(step.content)
+            + '</div>'
+            + '<div class="timeline-meta">' + formatTime(step.timestamp) + durationText + '</div>'
+            + '</li>';
+    }
+
+    /** epoch 毫秒 -> HH:mm:ss.SSS */
+    function formatTime(timestamp) {
+        const date = new Date(timestamp);
+        const hh = String(date.getHours()).padStart(2, '0');
+        const mm = String(date.getMinutes()).padStart(2, '0');
+        const ss = String(date.getSeconds()).padStart(2, '0');
+        const ms = String(date.getMilliseconds()).padStart(3, '0');
+        return hh + ':' + mm + ':' + ss + '.' + ms;
+    }
+
+    /** HTML 转义，防注入 */
+    function escapeHtml(text) {
+        if (text == null) {
+            return '';
+        }
+        return String(text)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;');
+    }
+
+    sendButton.addEventListener('click', sendQuestion);
+    questionInput.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+            sendQuestion();
+        }
+    });
+    questionInput.focus();
+</script>
+</body>
+</html>

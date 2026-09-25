@@ -22,8 +22,10 @@ import io.agentscope.core.message.Msg;
 import io.agentscope.core.message.MsgRole;
 import io.agentscope.core.message.TextBlock;
 import io.agentscope.core.message.URLSource;
+import io.agentscope.core.message.ContentBlock;
 import io.agentscope.core.model.ChatResponse;
 import io.agentscope.core.model.Model;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -50,30 +52,16 @@ public class AiPlatformService {
     private static final long CHAT_TIMEOUT_MS = 120_000L;
 
     /** 模型注册表 */
-    private final ModelRegistry modelRegistry;
+    @Autowired
+    private ModelRegistry modelRegistry;
 
     /** AgentScope 模型工厂 */
-    private final AgentScopeModelFactory modelFactory;
+    @Autowired
+    private AgentScopeModelFactory modelFactory;
 
     /** 凭证管理器 */
-    private final CredentialManager credentialManager;
-
-    /**
-     * 构造器
-     *
-     * @param modelRegistry
-     *                          模型注册表
-     * @param modelFactory
-     *                          AgentScope 模型工厂
-     * @param credentialManager
-     *                          凭证管理器
-     */
-    public AiPlatformService(ModelRegistry modelRegistry, AgentScopeModelFactory modelFactory,
-            CredentialManager credentialManager) {
-        this.modelRegistry = modelRegistry;
-        this.modelFactory = modelFactory;
-        this.credentialManager = credentialManager;
-    }
+    @Autowired
+    private CredentialManager credentialManager;
 
     /**
      * 单轮文本对话
@@ -292,7 +280,7 @@ public class AiPlatformService {
         for (AiMessage message : messages) {
             MsgRole role = resolveRole(message.getRole());
             if (CollectionUtilExt.isNotEmpty(message.getParts())) {
-                List<io.agentscope.core.message.ContentBlock> blocks = new ArrayList<>();
+                List<ContentBlock> blocks = new ArrayList<>();
                 for (AiMessage.ContentPart part : message.getParts()) {
                     blocks.add(toContentBlock(part));
                 }
@@ -328,7 +316,7 @@ public class AiPlatformService {
      *             统一内容片段
      * @return AgentScope 内容块
      */
-    private io.agentscope.core.message.ContentBlock toContentBlock(AiMessage.ContentPart part) {
+    private ContentBlock toContentBlock(AiMessage.ContentPart part) {
         if (StringUtilExt.equals("image_url", part.getType())) {
             return ImageBlock.builder().source(new URLSource(part.getImageUrl())).build();
         }

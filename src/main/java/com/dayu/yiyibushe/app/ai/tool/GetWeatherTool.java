@@ -1,0 +1,392 @@
+package com.dayu.yiyibushe.app.ai.tool;
+
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
+import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
+import com.dayu.yiyibushe.infra.ai.trace.TracePhase;
+import io.agentscope.core.message.ToolResultBlock;
+import io.agentscope.core.tool.AgentTool;
+import io.agentscope.core.tool.ToolCallParam;
+import org.slf4j.Logger;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
+import org.springframework.beans.factory.annotation.Autowired;
+import reactor.core.publisher.Mono;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
+
+/**
+ * 工具 2：天气查询（function calling，非 MCP）。
+ * <p>
+ * 入参二选一：{@code city}（城市名）或 {@code latitude + longitude}（经纬度，
+ * 通常来自 {@link GetCurrentLocationTool}）。
+ * 数据源：开源免费 Open-Meteo（主源，含城市名→经纬度 geocoding）；
+ * 主源任何环节失败自动兜底开源免费 wttr.in，全程无需 API Key。
+ * 调用计数 {@link #getCallCount()} 供测试验证"是否被模型命中"。
+ *
+ * @author Witty·Kid Fisher
+ * @version 0.0.2
+ */
+@Component
+public class GetWeatherTool implements AgentTool {
+
+    private static final Logger log = LogUtilExt.getLogger(GetWeatherTool.class);
+
+    /** 工具名（模型 function calling 选择用，需唯一） */
+    private static final String TOOL_NAME = "get-weather";
+
+    /** 所属技能名（对应 current-weather/SKILL.md） */
+    private static final String SKILL_NAME = "current-weather";
+
+    /** Open-Meteo 城市名 → 经纬度（开源免费 geocoding，中文） */
+    private static final String OPEN_METEO_GEOCODING_API =
+            "https://geocoding-api.open-meteo.com/v1/search?name={city}&count=1&language=zh&format=json";
+
+    /** Open-Meteo 实时天气（开源免费，无需 key；timezone 直接写斜杠，由 HTTP 客户端按 query 原样发送） */
+    private static final String OPEN_METEO_FORECAST_API =
+            "https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}"
+                    + "&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m"
+                    + "&timezone=Asia/Shanghai";
+
+    /** wttr.in 兜底：{place} 可为城市名或 "纬度,经度" */
+    private static final String WTTR_API = "https://wttr.in/{place}?format=j1&lang=zh";
+
+    /** 命中次数：测试用于验证对话是否触发了本工具 */
+    private final AtomicInteger callCount = new AtomicInteger();
+
+    /** 共享 HTTP 客户端（RestClientConfig 统一注入） */
+    @Autowired
+    private RestClient restClient;
+
+    /**
+     * 工具名称
+     *
+     * @return 工具名称
+     */
+    @Override
+    public String getName() {
+        return TOOL_NAME;
+    }
+
+    /**
+     * 工具描述：供模型判断何时调用、如何传参
+     *
+     * @return 工具描述
+     */
+    @Override
+    public String getDescription() {
+        return "查询指定位置的实时天气，返回天气现象、温度、相对湿度、风速。"
+                + "参数二选一：传 city 查指定城市（如 北京、上海）；"
+                + "或传 latitude 和 longitude 查经纬度所在位置（如 get-current-location 返回的坐标）。";
+    }
+
+    /**
+     * 入参 JSON Schema：city 或 latitude+longitude（均非强制 required，由模型按场景二选一）
+     *
+     * @return 参数 schema
+     */
+    @Override
+    public Map<String, Object> getParameters() {
+        return Map.of(
+                "type", "object",
+                "properties", Map.of(
+                        "city", Map.of("type", "string", "description", "城市名，如 北京、上海、Hangzhou"),
+                        "latitude", Map.of("type", "number", "description", "纬度"),
+                        "longitude", Map.of("type", "number", "description", "经度")),
+                "required", List.of());
+    }
+
+    /**
+     * 执行天气查询：主源 Open-Meteo（city 先 geocoding）→ 失败兜底 wttr.in
+     *
+     * @param param
+     *     调用参数（city 或 latitude/longitude）
+     * @return 天气文本或错误块
+     */
+    @Override
+    public Mono<ToolResultBlock> callAsync(ToolCallParam param) {
+        callCount.incrementAndGet();
+        ExecutionTrace trace = AgentToolTraceSupport.resolve(param);
+        // 懒加载闸门：技能正文未加载时拒绝执行，强制模型先调 load-skill-instructions
+        if (Objects.nonNull(trace) && !trace.isSkillInstructionsLoaded(SKILL_NAME)) {
+            trace.step(TracePhase.TOOL,
+                    "懒加载闸门拦截：技能【{0}】正文尚未加载，{1} 暂不执行，要求模型先加载指令",
+                    SKILL_NAME, TOOL_NAME);
+            return Mono.just(ToolResultBlock.error("请先调用 load-skill-instructions（skillName="
+                    + SKILL_NAME + "）加载技能指令，再重试 " + TOOL_NAME));
+        }
+        long startMillis = System.currentTimeMillis();
+        Map<String, Object> input = param.getInput();
+        String city = asString(input.get("city"));
+        Double latitude = asDouble(input.get("latitude"));
+        Double longitude = asDouble(input.get("longitude"));
+
+        if (Objects.nonNull(trace)) {
+            trace.hitSkill(SKILL_NAME);
+            trace.hitTool(TOOL_NAME);
+            trace.step(TracePhase.TOOL,
+                    "模型决策命中工具 {0}，入参：city={1}，latitude={2}，longitude={3}",
+                    TOOL_NAME, displayValue(city), displayValue(latitude), displayValue(longitude));
+        }
+
+        String result;
+        if (Objects.nonNull(latitude) && Objects.nonNull(longitude)) {
+            // 经纬度模式（当前位置链路）
+            result = queryByCoordinates(StringUtilExt.defaultIfBlank(city, "当前位置"),
+                    latitude, longitude, trace);
+        } else if (StringUtilExt.isNotBlank(city)) {
+            // 城市模式
+            result = queryByCity(city.trim(), trace);
+        } else {
+            return Mono.just(ToolResultBlock.error(
+                    "get-weather 需要提供 city，或 latitude+longitude，但调用中两者都为空"));
+        }
+
+        long elapsedMillis = System.currentTimeMillis() - startMillis;
+        if (StringUtilExt.isNotBlank(result)) {
+            LogUtilExt.info(log, "[WeatherTool] 查询完成: {0}", result);
+            if (Objects.nonNull(trace)) {
+                trace.stepWithDuration(TracePhase.TOOL, elapsedMillis,
+                        "天气查询完成，结构化结果回传模型");
+            }
+            return Mono.just(ToolResultBlock.text(result));
+        }
+        if (Objects.nonNull(trace)) {
+            trace.stepWithDuration(TracePhase.TOOL, elapsedMillis,
+                    "主源 Open-Meteo 与兜底 wttr.in 均不可用");
+        }
+        return Mono.just(ToolResultBlock.error("两个开源天气数据源（Open-Meteo、wttr.in）均不可用"));
+    }
+
+    /**
+     * 城市模式：Open-Meteo geocoding 转经纬度后查主源；任一步失败回退 wttr.in 城市接口
+     *
+     * @param city
+     *     城市名
+     * @param trace
+     *     执行轨迹（可空）
+     * @return 天气文本，全部失败返回 null
+     */
+    private String queryByCity(String city, ExecutionTrace trace) {
+        try {
+            if (Objects.nonNull(trace)) {
+                trace.step(TracePhase.TOOL, "城市模式：先调 Open-Meteo geocoding 解析城市经纬度");
+            }
+            String geoBody = restClient.get()
+                    .uri(OPEN_METEO_GEOCODING_API, city)
+                    .retrieve()
+                    .body(String.class);
+            JSONArray searchResults = JSON.parseObject(geoBody).getJSONArray("results");
+            if (Objects.nonNull(searchResults) && !searchResults.isEmpty()) {
+                JSONObject location = searchResults.getJSONObject(0);
+                double resolvedLat = location.getDoubleValue("latitude");
+                double resolvedLon = location.getDoubleValue("longitude");
+                String resolvedName = StringUtilExt.defaultIfBlank(location.getString("name"), city);
+                String primary = formatOpenMeteo(resolvedName, resolvedLat, resolvedLon, trace);
+                if (StringUtilExt.isNotBlank(primary)) {
+                    return primary;
+                }
+            }
+        } catch (RuntimeException e) {
+            LogUtilExt.warn(log, "[WeatherTool] Open-Meteo 城市解析失败，切换 wttr.in: {0}", e.getMessage());
+            if (Objects.nonNull(trace)) {
+                trace.step(TracePhase.TOOL, "Open-Meteo geocoding 异常，切换兜底源 wttr.in：{0}",
+                        e.getMessage());
+            }
+        }
+        return formatWttr(city, city, trace);
+    }
+
+    /**
+     * 经纬度模式：直接查 Open-Meteo 主源；失败回退 wttr.in 坐标接口
+     *
+     * @param locationName
+     *     位置展示名
+     * @param latitude
+     *     纬度
+     * @param longitude
+     *     经度
+     * @param trace
+     *     执行轨迹（可空）
+     * @return 天气文本，全部失败返回 null
+     */
+    private String queryByCoordinates(String locationName, double latitude, double longitude,
+            ExecutionTrace trace) {
+        String primary = formatOpenMeteo(locationName, latitude, longitude, trace);
+        if (StringUtilExt.isNotBlank(primary)) {
+            return primary;
+        }
+        // wttr.in 支持 "纬度,经度" 作为地点
+        if (Objects.nonNull(trace)) {
+            trace.step(TracePhase.TOOL, "主源失败，切换兜底源 wttr.in（坐标模式）");
+        }
+        String place = latitude + "," + longitude;
+        return formatWttr(locationName, place, trace);
+    }
+
+    /**
+     * Open-Meteo 主源查询并格式化
+     *
+     * @param locationName
+     *     位置展示名
+     * @param latitude
+     *     纬度
+     * @param longitude
+     *     经度
+     * @param trace
+     *     执行轨迹（可空）
+     * @return 天气文本，失败返回 null
+     */
+    private String formatOpenMeteo(String locationName, double latitude, double longitude,
+            ExecutionTrace trace) {
+        try {
+            if (Objects.nonNull(trace)) {
+                trace.step(TracePhase.TOOL, "请求主源 Open-Meteo 实时天气接口（开源免费，8秒超时）");
+            }
+            String body = restClient.get()
+                    .uri(OPEN_METEO_FORECAST_API, latitude, longitude)
+                    .retrieve()
+                    .body(String.class);
+            JSONObject current = JSON.parseObject(body).getJSONObject("current");
+            int weatherCode = current.getIntValue("weather_code");
+            return "【" + locationName + "实时天气】"
+                    + "天气：" + describeWmoCode(weatherCode)
+                    + "；温度：" + current.getBigDecimal("temperature_2m") + "℃"
+                    + "；相对湿度：" + current.getBigDecimal("relative_humidity_2m") + "%"
+                    + "；风速：" + current.getBigDecimal("wind_speed_10m") + " km/h"
+                    + "；观测时间：" + current.getString("time");
+        } catch (RuntimeException e) {
+            LogUtilExt.warn(log, "[WeatherTool] Open-Meteo 查询失败: {0}", e.getMessage());
+            if (Objects.nonNull(trace)) {
+                trace.step(TracePhase.TOOL, "Open-Meteo 实时天气查询失败：{0}", e.getMessage());
+            }
+            return null;
+        }
+    }
+
+    /**
+     * wttr.in 兜底查询并格式化
+     *
+     * @param locationName
+     *     位置展示名
+     * @param place
+     *     wttr.in 地点（城市名或 纬度,经度）
+     * @param trace
+     *     执行轨迹（可空）
+     * @return 天气文本，失败返回 null
+     */
+    private String formatWttr(String locationName, String place, ExecutionTrace trace) {
+        try {
+            if (Objects.nonNull(trace)) {
+                trace.step(TracePhase.TOOL, "请求兜底源 wttr.in（开源免费，8秒超时）");
+            }
+            String body = restClient.get().uri(WTTR_API, place).retrieve().body(String.class);
+            JSONObject condition = JSON.parseObject(body)
+                    .getJSONArray("current_condition")
+                    .getJSONObject(0);
+            // lang=zh 时取中文描述，取不到回退英文
+            String weatherText = condition.getJSONArray("lang_zh") != null
+                    ? condition.getJSONArray("lang_zh").getJSONObject(0).getString("value")
+                    : condition.getJSONArray("weatherDesc").getJSONObject(0).getString("value");
+            return "【" + locationName + "实时天气】"
+                    + "天气：" + weatherText
+                    + "；温度：" + condition.getString("temp_C") + "℃"
+                    + "；体感：" + condition.getString("FeelsLikeC") + "℃"
+                    + "；相对湿度：" + condition.getString("humidity") + "%"
+                    + "；风速：" + condition.getString("windspeedKmph") + " km/h";
+        } catch (RuntimeException e) {
+            LogUtilExt.warn(log, "[WeatherTool] wttr.in 查询也失败: {0}", e.getMessage());
+            if (Objects.nonNull(trace)) {
+                trace.step(TracePhase.TOOL, "wttr.in 查询失败：{0}", e.getMessage());
+            }
+            return null;
+        }
+    }
+
+    /**
+     * WMO 天气代码转中文描述（Open-Meteo 使用 WMO Weather interpretation codes）
+     *
+     * @param code
+     *     WMO 代码
+     * @return 中文天气现象
+     */
+    private String describeWmoCode(int code) {
+        return switch (code) {
+            case 0 -> "晴";
+            case 1 -> "大部晴朗";
+            case 2 -> "多云";
+            case 3 -> "阴";
+            case 45, 48 -> "雾";
+            case 51, 53, 55 -> "毛毛雨";
+            case 56, 57 -> "冻毛毛雨";
+            case 61 -> "小雨";
+            case 63 -> "中雨";
+            case 65 -> "大雨";
+            case 66, 67 -> "冻雨";
+            case 71 -> "小雪";
+            case 73 -> "中雪";
+            case 75 -> "大雪";
+            case 77 -> "雪粒";
+            case 80, 81, 82 -> "阵雨";
+            case 85, 86 -> "阵雪";
+            case 95 -> "雷暴";
+            case 96, 99 -> "雷暴伴冰雹";
+            default -> "未知（WMO code=" + code + "）";
+        };
+    }
+
+    /**
+     * 入参转字符串
+     *
+     * @param value
+     *     入参值
+     * @return 字符串或 null
+     */
+    private String asString(Object value) {
+        return Objects.isNull(value) ? null : String.valueOf(value);
+    }
+
+    /**
+     * 入参转 Double
+     *
+     * @param value
+     *     入参值
+     * @return Double 或 null
+     */
+    private Double asDouble(Object value) {
+        if (Objects.isNull(value)) {
+            return null;
+        }
+        if (value instanceof Number number) {
+            return number.doubleValue();
+        }
+        return Double.valueOf(String.valueOf(value));
+    }
+
+    /**
+     * trace 展示用：null 显示为空值标记，其余原样
+     *
+     * @param value
+     *     入参值
+     * @return 展示文本
+     */
+    private String displayValue(Object value) {
+        return Objects.isNull(value) ? "未传" : String.valueOf(value);
+    }
+
+    /**
+     * 获取本工具被模型命中的次数
+     *
+     * @return 命中次数
+     */
+    public int getCallCount() {
+        return callCount.get();
+    }
+}

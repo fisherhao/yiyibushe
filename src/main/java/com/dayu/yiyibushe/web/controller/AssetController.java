@@ -6,6 +6,7 @@ import com.dayu.yiyibushe.domain.asset.AssetCategory;
 import com.dayu.yiyibushe.domain.asset.AssetItem;
 import com.dayu.yiyibushe.web.interceptor.LoginUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -27,17 +28,8 @@ import java.util.List;
 @RequestMapping("/api/assets")
 public class AssetController {
 
-    private final PersonalAssetService personalAssetService;
-
-    /**
-     * 构造器
-     *
-     * @param personalAssetService
-     *                             个人素材服务
-     */
-    public AssetController(PersonalAssetService personalAssetService) {
-        this.personalAssetService = personalAssetService;
-    }
+    @Autowired
+    private PersonalAssetService personalAssetService;
 
     /**
      * 上传图片

@@ -10,6 +10,7 @@ import com.aliyun.oss.model.PutObjectResult;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -36,21 +37,11 @@ public class AliyunOssStorageService implements StorageService {
 
     private static final Logger log = LogUtilExt.getLogger(AliyunOssStorageService.class);
 
-    private final OSS ossClient;
-    private final OssProperties properties;
+    @Autowired
+    private OSS ossClient;
 
-    /**
-     * 构造器
-     *
-     * @param ossClient
-     *                   OSS 客户端
-     * @param properties
-     *                   OSS 配置
-     */
-    public AliyunOssStorageService(OSS ossClient, OssProperties properties) {
-        this.ossClient = ossClient;
-        this.properties = properties;
-    }
+    @Autowired
+    private OssProperties properties;
 
     /**
      * 上传单个文件到 OSS

@@ -57,7 +57,8 @@ public class ModelRegistry {
         putDefault(buildChatModel("gemini-2.0-flash", "gemini", "gemini-2.0-flash"));
 
         // ===== 通义千问（OpenAI 兼容模式） =====
-        putDefault(buildChatModel("qwen-plus", "qwen", "qwen-plus"));
+        // qwen-flash：Qwen3 系列 Flash，思考/非思考融合，1M 上下文，文本模型中最省钱版本
+        putDefault(buildChatModel("qwen-flash", "qwen", "qwen-flash"));
 
         // ===== 字节豆包（火山方舟，OpenAI 兼容） =====
         putDefault(buildChatModel("doubao-pro-32k", "doubao", "doubao-pro-32k"));
