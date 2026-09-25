@@ -1,4 +1,4 @@
-package com.dayu.yiyibushe.web.controller;
+package com.dayu.yiyibushe.web.dto;
 
 import com.dayu.yiyibushe.infra.ai.trace.TraceStep;
 

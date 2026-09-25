@@ -3,6 +3,7 @@ package com.dayu.yiyibushe.web.controller;
 import com.dayu.yiyibushe.app.ai.agent.AssistantChatAgent;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
 import com.dayu.yiyibushe.infra.ai.trace.TracePhase;
+import com.dayu.yiyibushe.web.dto.ChatResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

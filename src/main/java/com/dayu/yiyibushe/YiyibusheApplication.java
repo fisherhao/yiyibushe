@@ -9,7 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @author Witty·Kid Fisher
  */
 @SpringBootApplication
-public class ChatApplication {
+public class YiyibusheApplication {
 
     /**
      * 主方法：启动 Spring Boot 应用
@@ -18,6 +18,6 @@ public class ChatApplication {
      *     启动参数
      */
     public static void main(String[] args) {
-        SpringApplication.run(ChatApplication.class, args);
+        SpringApplication.run(YiyibusheApplication.class, args);
     }
 }
