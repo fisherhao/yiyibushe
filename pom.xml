@@ -99,6 +99,13 @@
             <artifactId>spring-boot-starter-log4j2</artifactId>
         </dependency>
 
+        <!-- LMAX Disruptor：Log4j2 异步日志（AsyncLogger/AsyncRoot）的底层无锁环形队列。 -->
+        <dependency>
+            <groupId>com.lmax</groupId>
+            <artifactId>disruptor</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+
         <!-- RocketMQ 官方原生客户端：引入官方类型与协议栈（如 org.apache.rocketmq.common.message.Message）。
              本项目不连远程服务器：发送侧把消息体按真实 MQ 语义序列化为官方 Message（JSON body），
              本地注册、本地发送、本地消费（见 infra/mq/LocalRocketMqBroker）；

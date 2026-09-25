@@ -1,16 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!-- Log4j2 配置（log4j2-spring.xml：由 Spring Boot 加载，早于业务日志输出）。
-     业务代码统一走 SLF4J 门面（org.slf4j.Logger），本文件只决定落地实现的行为。 -->
+     业务代码统一走 SLF4J 门面（org.slf4j.Logger），本文件只决定落地实现的行为。
+
+     本次调整：
+     1. 全异步日志：AsyncRoot 基于 LMAX Disruptor 无锁环形队列，业务线程只投递不等待 IO
+     2. ERROR 独立文件：普通日志与错误日志严格分离（互斥），错误日志单独落 common-error.log
+-->
 <Configuration status="WARN">
 
     <Appenders>
-        <!-- 控制台输出：日常开发主要看这里 -->
+
+        <!-- 控制台输出：日常开发主要看这里，保留全部级别（开发时 ERROR 也要实时可见） -->
         <Console name="Console" target="SYSTEM_OUT">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
         </Console>
 
-        <!-- 滚动文件输出：按天 + 单文件 50MB 滚动，压缩归档最多保留 30 个 -->
-        <RollingFile name="RollingFile"
+        <!-- 普通滚动文件：按天 + 单文件 50MB 滚动，压缩归档最多保留 30 个。
+             ThresholdFilter：ERROR 及以上 DENY（不写入普通文件），其余级别放行，
+             实现普通日志与错误日志严格互斥。 -->
+        <RollingFile name="InfoRollingFile"
                      fileName="logs/yiyibushe.log"
                      filePattern="logs/yiyibushe-%d{yyyy-MM-dd}-%i.log.gz">
             <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
@@ -19,11 +27,34 @@
                 <SizeBasedTriggeringPolicy size="50MB"/>
             </Policies>
             <DefaultRolloverStrategy max="30"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="DENY" onMismatch="NEUTRAL"/>
+            </Filters>
         </RollingFile>
+
+        <!-- 错误滚动文件：只接收 ERROR 级别，独立落 common-error.log。
+             ThresholdFilter：ERROR ACCEPT（写入错误文件），其余级别全部 DENY。
+             异常堆栈（%msg + 堆栈）完整保留，方便排查。 -->
+        <RollingFile name="ErrorRollingFile"
+                     fileName="logs/common-error.log"
+                     filePattern="logs/common-error-%d{yyyy-MM-dd}-%i.log.gz">
+            <PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1" modulate="true"/>
+                <SizeBasedTriggeringPolicy size="50MB"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
     </Appenders>
 
     <Loggers>
-        <!-- 项目内日志：info 起步；需要排查细节时临时改为 debug -->
+
+        <!-- 项目内日志：info 起步；需要排查细节时临时改为 debug。
+             普通文件 + 错误文件分流由 Root 统一挂 Appender 完成，这里不再重复挂。 -->
         <Logger name="com.dayu.yiyibushe" level="info"/>
 
         <!-- 第三方框架日志收敛为 warn，避免启动时刷屏 -->
@@ -31,10 +62,14 @@
         <Logger name="org.apache" level="warn"/>
         <Logger name="io.agentscope" level="info"/>
 
-        <Root level="info">
+        <!-- 异步根 Logger：业务线程经 Disruptor 环形队列投递日志事件，
+             由后台消费者线程统一写控制台/普通文件/错误文件，业务线程零 IO 阻塞。 -->
+        <AsyncRoot level="info" includeLocation="false">
             <AppenderRef ref="Console"/>
-            <AppenderRef ref="RollingFile"/>
-        </Root>
+            <AppenderRef ref="InfoRollingFile"/>
+            <AppenderRef ref="ErrorRollingFile"/>
+        </AsyncRoot>
+
     </Loggers>
 
 </Configuration>
