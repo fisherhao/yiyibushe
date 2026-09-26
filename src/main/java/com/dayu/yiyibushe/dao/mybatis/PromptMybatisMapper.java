@@ -39,10 +39,36 @@ public interface PromptMybatisMapper {
     List<PromptPO> selectByVersionGreaterThan(@Param("version") int version);
 
     /**
+     * 按分类查询提示词
+     *
+     * @param category 分类编码
+     * @return 提示词 PO 列表
+     */
+    List<PromptPO> selectByCategory(@Param("category") String category);
+
+    /**
      * 新增提示词
      *
      * @param promptPO 提示词 PO
      * @return 受影响行数
      */
     int insert(PromptPO promptPO);
+
+    /**
+     * 更新提示词内容并递增版本号
+     *
+     * @param promptCode 提示词编码
+     * @param content    新内容
+     * @return 受影响行数
+     */
+    int updateContent(@Param("promptCode") String promptCode, @Param("content") String content);
+
+    /**
+     * 更新提示词状态并递增版本号
+     *
+     * @param promptCode 提示词编码
+     * @param status     新状态
+     * @return 受影响行数
+     */
+    int updateStatus(@Param("promptCode") String promptCode, @Param("status") String status);
 }

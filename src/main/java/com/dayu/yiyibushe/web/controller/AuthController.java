@@ -3,6 +3,8 @@ package com.dayu.yiyibushe.web.controller;
 import com.dayu.yiyibushe.app.service.AuthService;
 import com.dayu.yiyibushe.common.ApiResult;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.auth.LoginPrincipal;
 import com.dayu.yiyibushe.infra.auth.SessionManager;
 import com.dayu.yiyibushe.web.dto.ChangePasswordRequest;
@@ -46,6 +48,9 @@ public class AuthController {
 
     @Autowired
     private SessionManager sessionManager;
+
+    @Autowired
+    private PromptStore promptStore;
 
     /**
      * 注册：注册成功直接创建会话并写 Cookie，免再次登录
@@ -94,7 +99,7 @@ public class AuthController {
         CookieReader cookieReader = new CookieReader(request);
         sessionManager.remove(cookieReader.sessionId());
         clearCookie(response);
-        return ApiResult.success("已登出");
+        return ApiResult.success(promptStore.require(AiConstants.PROMPT_AUTH_LOGOUT_SUCCESS));
     }
 
     /**
@@ -147,7 +152,7 @@ public class AuthController {
         Long userId = authService.resetPassword(request.getUsername(), request.getNewPassword());
         sessionManager.kickByUserId(userId);
         clearCookie(response);
-        return ApiResult.success("密码已重置，请使用新密码登录");
+        return ApiResult.success(promptStore.require(AiConstants.PROMPT_AUTH_PASSWORD_RESET_SUCCESS));
     }
 
     /**

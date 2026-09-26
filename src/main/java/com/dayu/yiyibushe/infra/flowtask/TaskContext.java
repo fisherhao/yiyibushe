@@ -22,22 +22,25 @@ public class TaskContext {
     public static final String KEY_TASK_TYPE = "taskType";
 
     /** 所属任务 ID */
-    private final Long taskId;
+    private Long taskId;
 
     /** 任务执行上下文（业务数据 + 节点输出，与 FlowTask.taskContext 同一份引用） */
-    private final Map<String, Object> taskContext;
+    private Map<String, Object> taskContext;
 
     /**
-     * 构造器
+     * 静态工厂：创建任务上下文
      *
      * @param taskId
      *                    所属任务 ID
      * @param taskContext
      *                    任务执行上下文
+     * @return 任务上下文
      */
-    public TaskContext(Long taskId, Map<String, Object> taskContext) {
-        this.taskId = taskId;
-        this.taskContext = taskContext;
+    public static TaskContext create(Long taskId, Map<String, Object> taskContext) {
+        TaskContext context = new TaskContext();
+        context.taskId = taskId;
+        context.taskContext = taskContext;
+        return context;
     }
 
     /**

@@ -108,7 +108,8 @@ public class AssistantChatAgent extends BaseAiAgent {
      */
     @Override
     public ExecutionResult execute(ExecutionContext context, Map<String, ExecutionResult> inputs) {
-        String userMessage = StringUtilExt.defaultIfBlank((String) context.get("userMessage"), "你好");
+        String userMessage = StringUtilExt.defaultIfBlank((String) context.get("userMessage"),
+                promptStore.require(AiConstants.PROMPT_DEFAULT_USER_MESSAGE));
         String reply = chat(userMessage);
         context.put("reply", reply);
         return ExecutionResult.success(reply);

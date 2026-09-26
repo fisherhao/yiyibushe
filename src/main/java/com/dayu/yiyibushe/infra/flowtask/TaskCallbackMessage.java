@@ -26,16 +26,6 @@ public class TaskCallbackMessage {
     }
 
     /**
-     * 私有构造器，统一走 {@link #of(Long)}
-     *
-     * @param taskId
-     *     目标任务 ID
-     */
-    private TaskCallbackMessage(Long taskId) {
-        this.taskId = taskId;
-    }
-
-    /**
      * 构造回调消息
      *
      * @param taskId
@@ -43,7 +33,9 @@ public class TaskCallbackMessage {
      * @return 回调消息
      */
     public static TaskCallbackMessage of(Long taskId) {
-        return new TaskCallbackMessage(taskId);
+        TaskCallbackMessage message = new TaskCallbackMessage();
+        message.taskId = taskId;
+        return message;
     }
 
     /**

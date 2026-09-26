@@ -1,10 +1,14 @@
 package com.dayu.yiyibushe.app.task;
 
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.flowtask.TaskContext;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeAction;
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
@@ -19,6 +23,7 @@ import java.util.Optional;
  * @author Witty·Kid Fisher
  * @version 0.0.4
  */
+@Component
 public class FailOnceNode implements TaskNodeAction {
 
     private static final Logger log = LogUtilExt.getLogger(FailOnceNode.class);
@@ -31,6 +36,10 @@ public class FailOnceNode implements TaskNodeAction {
 
     /** 首次失败原因（模拟数据，非用户提示文案） */
     private static final String SIMULATED_FIRST_FAILURE = "SIMULATED_FIRST_ATTEMPT_FAILURE";
+
+    /** 提示词读取器 */
+    @Autowired
+    private PromptStore promptStore;
 
     /**
      * 声明节点类型
@@ -59,6 +68,6 @@ public class FailOnceNode implements TaskNodeAction {
             return TaskNodeResult.failed(SIMULATED_FIRST_FAILURE);
         }
         LogUtilExt.info(log, "[FlowTask-演示] failOnce 第 {0} 次执行成功", nextCount);
-        return TaskNodeResult.success("第二次执行成功");
+        return TaskNodeResult.success(promptStore.require(AiConstants.PROMPT_FAIL_ONCE_SUCCESS));
     }
 }

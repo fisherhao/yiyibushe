@@ -107,7 +107,7 @@ public class LocalCredentialMigrationSource {
             return null;
         }
         String trimmedKey = StringUtilExt.isBlank(appKey) ? null : StringUtilExt.trim(appKey);
-        return new ApiCredential(trimmedKey, StringUtilExt.trim(appSecret));
+        return ApiCredential.create(trimmedKey, StringUtilExt.trim(appSecret));
     }
 
     /**

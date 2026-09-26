@@ -345,7 +345,7 @@ public class TaskEngine {
      * @return 任务上下文
      */
     private TaskContext buildContext(FlowTask task) {
-        return new TaskContext(task.getTaskId(), task.getTaskContext());
+        return TaskContext.create(task.getTaskId(), task.getTaskContext());
     }
 
     /**

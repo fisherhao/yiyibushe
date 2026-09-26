@@ -48,7 +48,7 @@ public class DbCredentialStore implements CredentialStore {
         if (Objects.isNull(credentialPO)) {
             return null;
         }
-        return new ApiCredential(credentialPO.getAppKey(), credentialPO.getAppSecret());
+        return ApiCredential.create(credentialPO.getAppKey(), credentialPO.getAppSecret());
     }
 
     @Override

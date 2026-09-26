@@ -47,6 +47,16 @@ public class MysqlPromptMapper implements PromptMapper {
     }
 
     @Override
+    public List<PromptDefinition> selectByCategory(String category) {
+        if (Objects.isNull(category)) {
+            return selectAll();
+        }
+        return CollectionUtilExt.toStream(promptMybatisMapper.selectByCategory(category))
+                .map(this::toDefinition)
+                .toList();
+    }
+
+    @Override
     public int insert(PromptDefinition promptDefinition) {
         if (Objects.isNull(promptDefinition)) {
             throw new BizException(ParamErrorCode.PARAM_NULL);
@@ -58,6 +68,22 @@ public class MysqlPromptMapper implements PromptMapper {
             promptDefinition.setStatus(DEFAULT_STATUS);
         }
         return promptMybatisMapper.insert(toPO(promptDefinition));
+    }
+
+    @Override
+    public int updateContent(String promptCode, String content) {
+        if (Objects.isNull(promptCode) || Objects.isNull(content)) {
+            throw new BizException(ParamErrorCode.PARAM_NULL);
+        }
+        return promptMybatisMapper.updateContent(promptCode, content);
+    }
+
+    @Override
+    public int updateStatus(String promptCode, String status) {
+        if (Objects.isNull(promptCode) || Objects.isNull(status)) {
+            throw new BizException(ParamErrorCode.PARAM_NULL);
+        }
+        return promptMybatisMapper.updateStatus(promptCode, status);
     }
 
     /**

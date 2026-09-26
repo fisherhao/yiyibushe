@@ -113,9 +113,12 @@ public void setFunctionCode(String functionCode) {
     - 跨模块/多类共用的字面量（状态、类型、文档标准等）必须集中到 `infra/ai/constant/AiConstants`，类为 `final`、私有构造器、全大写常量；
     - 厂商标识与通信协议以 `ProviderInfo` 枚举（含内部 `Protocol` 枚举）为单一事实源，各处引用 `ProviderInfo.XXX.getCode()` / `Protocol.XXX.name()`，禁止再写字面量或重复常量化；
     - 仅单个类内部使用的常量保留在该类，不强行上收（避免过度设计）。
-11. **构造器只用来创造对象**：构造器内只允许纯字段赋值（`this.x = x`），禁止写换算、解析、循环注册、线程/连接装配（RestClient、Executor 等）业务逻辑；
+11. **构造器只用来创造对象，构造器内禁止写任何逻辑**：
+    - **禁止显式编写带参构造器**（Java 异常类 `Exception` 子类除外，其带参构造器是语言机制必须）；
+    - 无参空构造器可保留（数据对象供 MyBatis/JSON 反序列化使用），但**构造器方法体必须为空**；集合/字段初始化（`new ArrayList<>()`、`new HashMap<>()` 等）一律挪到字段声明处，不写进构造器；
+    - Spring Bean 依赖统一 `@Autowired` 字段注入，禁止构造器注入；
     - 配置值统一用 `@Value` 字段注入（配合默认值），需要启动期装配的逻辑（注册、解析、建连、编排）放 `@PostConstruct`；
-    - 非 Spring 管理的对象需要入参校验 + 复杂装配时，用 `public static Xxx create(...)` 静态工厂承担校验与装配，构造器收窄为 `private` 且只赋值。
+    - 非 Spring 管理的对象需要传参创建时，用 `public static Xxx create(...)` / `of(...)` 静态工厂承担赋值与校验，类内不声明带参构造器。
 
 ## 七、异常与错误码
 

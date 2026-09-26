@@ -22,7 +22,7 @@ public class AiRequest implements Serializable {
     private String modelCode;
 
     /** 消息列表（对话场景） */
-    private List<AiMessage> messages;
+    private List<AiMessage> messages = new ArrayList<>();
 
     /** 文本提示词（文生图 / 图像编辑场景，与 messages 二选一） */
     private String prompt;
@@ -37,15 +37,7 @@ public class AiRequest implements Serializable {
     private String garmentImageUrl;
 
     /** 生成参数：temperature、maxTokens、size、n 等，连接层按需取用 */
-    private Map<String, Object> parameters;
-
-    /**
-     * 无参构造器
-     */
-    public AiRequest() {
-        this.messages = new ArrayList<>();
-        this.parameters = new HashMap<>();
-    }
+    private Map<String, Object> parameters = new HashMap<>();
 
     /**
      * 添加一条消息

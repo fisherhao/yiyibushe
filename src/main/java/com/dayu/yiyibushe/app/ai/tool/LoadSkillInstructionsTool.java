@@ -125,7 +125,8 @@ public class LoadSkillInstructionsTool implements AgentTool {
                         skillName, CollectionUtilExt.mapToList(skillDocumentLoader.listSkills(),
                                 SkillDocument::name));
             }
-            return Mono.just(ToolResultBlock.error("不存在名为 " + skillName + " 的技能"));
+            return Mono.just(ToolResultBlock.error(
+                    promptStore.format(AiConstants.PROMPT_LOAD_SKILL_NOT_FOUND, skillName)));
         }
 
         if (Objects.nonNull(trace)) {

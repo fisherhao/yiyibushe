@@ -17,22 +17,25 @@ public class ApiCredential implements Serializable {
     private static final long serialVersionUID = 5829103756201938475L;
 
     /** 应用标识（可选） */
-    private final String appKey;
+    private String appKey;
 
     /** 应用密钥（必填） */
-    private final String appSecret;
+    private String appSecret;
 
     /**
-     * 全参构造器
+     * 静态工厂：创建凭证
      *
      * @param appKey
      *     应用标识
      * @param appSecret
      *     应用密钥
+     * @return 凭证
      */
-    public ApiCredential(String appKey, String appSecret) {
-        this.appKey = appKey;
-        this.appSecret = appSecret;
+    public static ApiCredential create(String appKey, String appSecret) {
+        ApiCredential credential = new ApiCredential();
+        credential.appKey = appKey;
+        credential.appSecret = appSecret;
+        return credential;
     }
 
     /**

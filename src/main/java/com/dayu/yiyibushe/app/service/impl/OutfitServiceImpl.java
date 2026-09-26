@@ -94,7 +94,8 @@ public class OutfitServiceImpl implements OutfitService {
                 personImageUrl = response.getImageUrls().get(0);
             }
         }
-        TryOnTaskResult success = TryOnTaskResult.succeeded(lastTaskId, personImageUrl, personImageUrl);
+        TryOnTaskResult success = TryOnTaskResult.succeeded(lastTaskId, personImageUrl, personImageUrl,
+                promptStore.require(AiConstants.PROMPT_TRYON_SUCCEEDED));
         resultStore.put(lastTaskId, success);
         return lastTaskId;
     }

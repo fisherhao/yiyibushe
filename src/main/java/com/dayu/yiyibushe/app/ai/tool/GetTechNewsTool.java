@@ -6,6 +6,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
 import com.dayu.yiyibushe.infra.ai.trace.TracePhase;
@@ -92,6 +94,10 @@ public class GetTechNewsTool implements AgentTool {
     @Autowired
     private RestClient restClient;
 
+    /** 提示词存储：工具描述与错误文案从此读取 */
+    @Autowired
+    private PromptStore promptStore;
+
     /** 缓存条目（null 表示无缓存） */
     private volatile CachedNews cachedNews;
 
@@ -112,9 +118,7 @@ public class GetTechNewsTool implements AgentTool {
      */
     @Override
     public String getDescription() {
-        return "抓取今日最新科技新闻条目（标题、链接、来源、发布时间），无参数。"
-                + "当用户询问科技新闻、科技圈动态、最近有什么新消息时调用；"
-                + "返回原始新闻列表后，由你把外文标题翻译成中文并提炼 3-5 条要点，不要原样输出 JSON。";
+        return promptStore.require(AiConstants.PROMPT_NEWS_TOOL_DESC);
     }
 
     /**
@@ -146,8 +150,8 @@ public class GetTechNewsTool implements AgentTool {
             trace.step(TracePhase.TOOL,
                     "懒加载闸门拦截：技能【{0}】正文尚未加载，{1} 暂不执行，要求模型先加载指令",
                     SKILL_NAME, TOOL_NAME);
-            return Mono.just(ToolResultBlock.error("请先调用 load-skill-instructions（skillName="
-                    + SKILL_NAME + "）加载技能指令，再重试 " + TOOL_NAME));
+            return Mono.just(ToolResultBlock.error(
+                    promptStore.format(AiConstants.PROMPT_SKILL_GATE_BLOCKED, SKILL_NAME, TOOL_NAME)));
         }
         long startMillis = System.currentTimeMillis();
         if (Objects.nonNull(trace)) {
@@ -212,7 +216,7 @@ public class GetTechNewsTool implements AgentTool {
                     "三个免费新闻源（GDELT、Hacker News、Wikinews）均不可用");
         }
         return Mono.just(ToolResultBlock.error(
-                "三个免费新闻源（GDELT、Wikinews、Hacker News）均不可用"));
+                promptStore.require(AiConstants.PROMPT_NEWS_SOURCE_FAIL)));
     }
 
     /**

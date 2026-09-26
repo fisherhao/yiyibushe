@@ -4,6 +4,7 @@ import com.dayu.yiyibushe.app.task.FailOnceNode;
 import com.dayu.yiyibushe.app.task.PassThroughNode;
 import com.dayu.yiyibushe.app.task.SubmitCallbackNode;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.flowtask.retry.FixedIntervalRetryStrategy;
 import com.dayu.yiyibushe.infra.mq.RocketMqTemplate;
 import org.junit.jupiter.api.AfterEach;
@@ -313,11 +314,11 @@ class FlowTaskFrameworkTest {
          */
         @Bean
         @Primary
-        TaskNodeStrategy testTaskNodeStrategy() {
+        TaskNodeStrategy testTaskNodeStrategy(FailOnceNode failOnceNode) {
             return new TaskNodeStrategy() {
                 {
                     registerChain(SubmitCallbackNode.TASK_TYPE,
-                            new SubmitCallbackNode(), new FailOnceNode(), new PassThroughNode());
+                            new SubmitCallbackNode(), failOnceNode, new PassThroughNode());
                     registerChain(TEST_FAIL_CHAIN, new DirectSuccessNode(), new AlwaysFailNode());
                 }
             };

@@ -44,7 +44,7 @@ public class SkillToolkitConfig {
     public Toolkit skillToolkit() {
         Toolkit toolkit = new Toolkit();
         for (AiSkill skill : skills) {
-            toolkit.registerAgentTool(new AiSkillToolAdapter(skill));
+            toolkit.registerAgentTool(AiSkillToolAdapter.create(skill));
         }
         for (AgentTool agentTool : agentTools) {
             toolkit.registerAgentTool(agentTool);

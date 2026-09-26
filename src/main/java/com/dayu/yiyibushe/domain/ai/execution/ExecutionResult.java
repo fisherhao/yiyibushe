@@ -23,20 +23,13 @@ public class ExecutionResult implements Serializable {
     private Object output;
 
     /** 多输出数据（合并/并行场景，key 为来源节点 ID） */
-    private Map<String, Object> outputs;
+    private Map<String, Object> outputs = new HashMap<>();
 
     /** 附加消息 */
     private String message;
 
     /** 耗时（毫秒） */
     private long elapsedMs;
-
-    /**
-     * 无参构造器
-     */
-    public ExecutionResult() {
-        this.outputs = new HashMap<>();
-    }
 
     /**
      * 构造成功结果

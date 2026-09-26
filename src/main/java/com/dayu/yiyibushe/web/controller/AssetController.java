@@ -4,6 +4,8 @@ import com.dayu.yiyibushe.app.service.PersonalAssetService;
 import com.dayu.yiyibushe.common.ApiResult;
 import com.dayu.yiyibushe.domain.asset.AssetCategory;
 import com.dayu.yiyibushe.domain.asset.AssetItem;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.web.interceptor.LoginUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class AssetController {
 
     @Autowired
     private PersonalAssetService personalAssetService;
+
+    @Autowired
+    private PromptStore promptStore;
 
     /**
      * 上传图片
@@ -101,6 +106,6 @@ public class AssetController {
     @DeleteMapping
     public ApiResult<String> delete(@RequestParam Long assetId, HttpServletRequest request) throws IOException {
         personalAssetService.deleteAsset(LoginUtil.currentUser(request), assetId);
-        return ApiResult.success("已删除");
+        return ApiResult.success(promptStore.require(AiConstants.PROMPT_ASSET_DELETE_SUCCESS));
     }
 }

@@ -27,9 +27,28 @@
         ORDER BY version
     </select>
 
+    <select id="selectByCategory" resultType="com.dayu.yiyibushe.dao.po.PromptPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_prompt
+        WHERE category = #{category}
+        ORDER BY id
+    </select>
+
     <insert id="insert">
         INSERT INTO ai_prompt (prompt_code, prompt_name, category, content, status, version, remark)
         VALUES (#{promptCode}, #{promptName}, #{category}, #{content}, #{status}, #{version}, #{remark})
     </insert>
+
+    <update id="updateContent">
+        UPDATE ai_prompt
+        SET content = #{content}, version = version + 1, gmt_modify = CURRENT_TIMESTAMP
+        WHERE prompt_code = #{promptCode}
+    </update>
+
+    <update id="updateStatus">
+        UPDATE ai_prompt
+        SET status = #{status}, version = version + 1, gmt_modify = CURRENT_TIMESTAMP
+        WHERE prompt_code = #{promptCode}
+    </update>
 
 </mapper>

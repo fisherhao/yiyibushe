@@ -44,31 +44,6 @@ public class ApiResult<T> extends BaseResult implements Serializable {
     }
 
     /**
-     * 构造成功返回
-     *
-     * @param data
-     *     业务数据
-     */
-    private ApiResult(T data) {
-        this.success = true;
-        this.data = data;
-    }
-
-    /**
-     * 构造失败返回
-     *
-     * @param errCode
-     *     错误码
-     * @param errMsg
-     *     错误信息
-     */
-    private ApiResult(String errCode, String errMsg) {
-        this.success = false;
-        this.errCode = errCode;
-        this.errMsg = errMsg;
-    }
-
-    /**
      * 成功返回
      *
      * @param data
@@ -78,7 +53,10 @@ public class ApiResult<T> extends BaseResult implements Serializable {
      * @return ApiResult
      */
     public static <T> ApiResult<T> success(T data) {
-        return new ApiResult<>(data);
+        ApiResult<T> result = new ApiResult<>();
+        result.success = true;
+        result.data = data;
+        return result;
     }
 
     /**
@@ -93,7 +71,11 @@ public class ApiResult<T> extends BaseResult implements Serializable {
      * @return ApiResult
      */
     public static <T> ApiResult<T> fail(String errCode, String errMsg) {
-        return new ApiResult<>(errCode, errMsg);
+        ApiResult<T> result = new ApiResult<>();
+        result.success = false;
+        result.errCode = errCode;
+        result.errMsg = errMsg;
+        return result;
     }
 
     /**

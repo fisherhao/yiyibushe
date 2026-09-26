@@ -23,7 +23,7 @@ public class AiResponse implements Serializable {
     private String text;
 
     /** 生成的图片 URL 列表（图片生成 / 图像编辑模型） */
-    private List<String> imageUrls;
+    private List<String> imageUrls = new ArrayList<>();
 
     /** 任务 ID（异步任务模型） */
     private String taskId;
@@ -36,13 +36,6 @@ public class AiResponse implements Serializable {
 
     /** 厂商原始响应（调试用，业务层不应依赖） */
     private String rawResponse;
-
-    /**
-     * 无参构造器
-     */
-    public AiResponse() {
-        this.imageUrls = new ArrayList<>();
-    }
 
     /**
      * 构造成功的文本响应

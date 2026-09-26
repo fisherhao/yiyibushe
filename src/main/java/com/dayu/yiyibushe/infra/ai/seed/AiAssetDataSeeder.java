@@ -577,6 +577,83 @@ public class AiAssetDataSeeder implements ApplicationRunner {
         baselineList.add(definePrompt(AiConstants.PROMPT_LOAD_SKILL_MISSING_ARG, "技能加载工具缺参错误",
                 AiConstants.PROMPT_CATEGORY_TOOL_DESC,
                 "load-skill-instructions 缺少必填参数 skillName"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_OUTFIT_SKILL_DESC, "穿搭技能描述",
+                AiConstants.PROMPT_CATEGORY_SKILL_DESC,
+                "根据上装、下装与场景，生成一套穿搭建议"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_OUTFIT_RESULT_TEMPLATE, "穿搭建议输出模板",
+                AiConstants.PROMPT_CATEGORY_RESULT_TEMPLATE,
+                "推荐搭配：{0} + {1}，适合「{2}」场景"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_OUTFIT_TOP_DEFAULT, "上装缺省值",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "未知上装"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_OUTFIT_PANTS_DEFAULT, "下装缺省值",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "未知下装"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_OUTFIT_SCENE_DEFAULT, "场景缺省值",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "日常"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_AUTH_LOGOUT_SUCCESS, "登出成功提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "已登出"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_AUTH_PASSWORD_RESET_SUCCESS, "密码重置成功提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "密码已重置，请使用新密码登录"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_ASSET_DELETE_SUCCESS, "素材删除成功提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "已删除"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_FAIL_ONCE_SUCCESS, "演示节点重试成功提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "第二次执行成功"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_TRYON_PENDING, "试穿任务排队中",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "任务排队中"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_TRYON_RUNNING, "试穿任务执行中",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "任务执行中"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_TRYON_SUCCEEDED, "试穿任务成功",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "成功"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_SKILL_GATE_BLOCKED, "技能懒加载闸门拦截提示",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "请先调用 load-skill-instructions（skillName={0}）加载技能指令，再重试 {1}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOCATION_TOOL_DESC, "定位工具描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "按当前网络出口 IP 获取当前所在位置，返回城市名、纬度、经度。无参数。"
+                        + "当用户询问当前位置天气但没有给出城市名时，先调用本工具，再用经纬度调用 get-weather。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOCATION_FAIL, "定位失败提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "定位失败: {0}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOCATION_ERROR, "定位异常提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "定位异常: {0}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOCATION_CITY_DEFAULT, "城市缺省值",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "未知"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_TOOL_DESC, "天气工具描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "查询指定位置的实时天气，返回天气现象、温度、相对湿度、风速。"
+                        + "参数二选一：传 city 查指定城市（如 北京、上海）；"
+                        + "或传 latitude 和 longitude 查经纬度所在位置（如 get-current-location 返回的坐标）。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_ARG_CITY_DESC, "天气工具 city 参数描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC, "城市名，如 北京、上海、Hangzhou"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_ARG_LAT_DESC, "天气工具 latitude 参数描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC, "纬度"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_ARG_LON_DESC, "天气工具 longitude 参数描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC, "经度"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_ARG_MISSING, "天气工具缺参错误",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY,
+                "get-weather 需要提供 city，或 latitude+longitude，但调用中两者都为空"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_SOURCE_FAIL, "天气数据源全部不可用",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "两个开源天气数据源（Open-Meteo、wttr.in）均不可用"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_LOCATION_DEFAULT, "经纬度模式位置默认名",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "当前位置"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_RESULT_METEO, "Open-Meteo 天气结果模板",
+                AiConstants.PROMPT_CATEGORY_RESULT_TEMPLATE,
+                "【{0}实时天气】天气：{1}；温度：{2}℃；相对湿度：{3}%；风速：{4} km/h；观测时间：{5}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_RESULT_WTTR, "wttr.in 天气结果模板",
+                AiConstants.PROMPT_CATEGORY_RESULT_TEMPLATE,
+                "【{0}实时天气】天气：{1}；温度：{2}℃；体感：{3}℃；相对湿度：{4}%；风速：{5} km/h"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_NEWS_TOOL_DESC, "科技新闻工具描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "抓取今日最新科技新闻条目（标题、链接、来源、发布时间），无参数。"
+                        + "当用户询问科技新闻、科技圈动态、最近有什么新消息时调用；"
+                        + "返回原始新闻列表后，由你把外文标题翻译成中文并提炼 3-5 条要点，不要原样输出 JSON。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_NEWS_SOURCE_FAIL, "新闻数据源全部不可用",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY,
+                "三个免费新闻源（GDELT、Wikinews、Hacker News）均不可用"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOAD_SKILL_NOT_FOUND, "技能不存在错误提示",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "不存在名为 {0} 的技能"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_DEFAULT_USER_MESSAGE, "用户消息缺省值",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "你好"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_WEATHER_WMO_UNKNOWN, "WMO 代码未知兜底",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "未知（WMO code={0}）"));
         return baselineList;
     }
 

@@ -16,29 +16,13 @@ import java.util.Objects;
 public class TaskNodeResult {
 
     /** 结果状态（只允许 SUCCESS / FAILED / WAIT 三种） */
-    private final TaskNodeStatus status;
+    private TaskNodeStatus status;
 
     /** 节点输出（成功或待回调时可携带，会持久化并作为后续节点入参） */
-    private final Object output;
+    private Object output;
 
     /** 附加消息（失败时为失败原因） */
-    private final String message;
-
-    /**
-     * 私有构造器，统一走静态工厂
-     *
-     * @param status
-     *     结果状态
-     * @param output
-     *     节点输出
-     * @param message
-     *     附加消息
-     */
-    private TaskNodeResult(TaskNodeStatus status, Object output, String message) {
-        this.status = status;
-        this.output = output;
-        this.message = message;
-    }
+    private String message;
 
     /**
      * 构造成功结果
@@ -48,7 +32,10 @@ public class TaskNodeResult {
      * @return 成功结果
      */
     public static TaskNodeResult success(Object output) {
-        return new TaskNodeResult(TaskNodeStatus.SUCCESS, output, null);
+        TaskNodeResult result = new TaskNodeResult();
+        result.status = TaskNodeStatus.SUCCESS;
+        result.output = output;
+        return result;
     }
 
     /**
@@ -59,7 +46,10 @@ public class TaskNodeResult {
      * @return 失败结果
      */
     public static TaskNodeResult failed(String message) {
-        return new TaskNodeResult(TaskNodeStatus.FAILED, null, message);
+        TaskNodeResult result = new TaskNodeResult();
+        result.status = TaskNodeStatus.FAILED;
+        result.message = message;
+        return result;
     }
 
     /**
@@ -68,7 +58,9 @@ public class TaskNodeResult {
      * @return 待回调结果
      */
     public static TaskNodeResult waiting() {
-        return new TaskNodeResult(TaskNodeStatus.WAIT, null, null);
+        TaskNodeResult result = new TaskNodeResult();
+        result.status = TaskNodeStatus.WAIT;
+        return result;
     }
 
     /**

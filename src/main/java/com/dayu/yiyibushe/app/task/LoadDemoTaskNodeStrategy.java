@@ -2,6 +2,7 @@ package com.dayu.yiyibushe.app.task;
 
 import com.dayu.yiyibushe.infra.flowtask.TaskNodeStrategy;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,10 +14,13 @@ import org.springframework.stereotype.Component;
  * 数组顺序即执行顺序，框架没有排序值的概念；引擎用 for 循环按链从头跑到尾。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.2
+ * @version 0.0.4
  */
 @Component
 public class LoadDemoTaskNodeStrategy extends TaskNodeStrategy {
+
+    @Autowired
+    private FailOnceNode failOnceNode;
 
     /**
      * 编排 LOAD_DEMO 任务类型的节点链
@@ -25,7 +29,7 @@ public class LoadDemoTaskNodeStrategy extends TaskNodeStrategy {
     public void initChain() {
         registerChain(SubmitCallbackNode.TASK_TYPE,
                 new SubmitCallbackNode(),
-                new FailOnceNode(),
+                failOnceNode,
                 new PassThroughNode());
     }
 }

@@ -232,7 +232,7 @@ public class AiPlatformService {
         if (Objects.isNull(info)) {
             throw new BizException(BizErrorCode.PROVIDER_UNKNOWN);
         }
-        credentialManager.saveCredential(info.getCode(), new ApiCredential(appKey, appSecret));
+        credentialManager.saveCredential(info.getCode(), ApiCredential.create(appKey, appSecret));
         ModelDefinition definition = new ModelDefinition();
         definition.setCode("adhoc-" + info.getCode() + "-" + modelName);
         definition.setProvider(info.getCode());

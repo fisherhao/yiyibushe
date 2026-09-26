@@ -6,6 +6,8 @@ import com.alibaba.fastjson2.JSONObject;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
 import com.dayu.yiyibushe.infra.ai.trace.TracePhase;
@@ -18,6 +20,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -66,6 +69,10 @@ public class GetWeatherTool implements AgentTool {
     @Autowired
     private RestClient restClient;
 
+    /** 提示词存储：工具描述、参数描述、结果模板与错误文案从此读取 */
+    @Autowired
+    private PromptStore promptStore;
+
     /**
      * 工具名称
      *
@@ -83,9 +90,7 @@ public class GetWeatherTool implements AgentTool {
      */
     @Override
     public String getDescription() {
-        return "查询指定位置的实时天气，返回天气现象、温度、相对湿度、风速。"
-                + "参数二选一：传 city 查指定城市（如 北京、上海）；"
-                + "或传 latitude 和 longitude 查经纬度所在位置（如 get-current-location 返回的坐标）。";
+        return promptStore.require(AiConstants.PROMPT_WEATHER_TOOL_DESC);
     }
 
     /**
@@ -95,13 +100,28 @@ public class GetWeatherTool implements AgentTool {
      */
     @Override
     public Map<String, Object> getParameters() {
-        return Map.of(
-                "type", "object",
-                "properties", Map.of(
-                        "city", Map.of("type", "string", "description", "城市名，如 北京、上海、Hangzhou"),
-                        "latitude", Map.of("type", "number", "description", "纬度"),
-                        "longitude", Map.of("type", "number", "description", "经度")),
-                "required", List.of());
+        Map<String, Object> cityProperty = new LinkedHashMap<>();
+        cityProperty.put("type", "string");
+        cityProperty.put("description", promptStore.require(AiConstants.PROMPT_WEATHER_ARG_CITY_DESC));
+
+        Map<String, Object> latProperty = new LinkedHashMap<>();
+        latProperty.put("type", "number");
+        latProperty.put("description", promptStore.require(AiConstants.PROMPT_WEATHER_ARG_LAT_DESC));
+
+        Map<String, Object> lonProperty = new LinkedHashMap<>();
+        lonProperty.put("type", "number");
+        lonProperty.put("description", promptStore.require(AiConstants.PROMPT_WEATHER_ARG_LON_DESC));
+
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("city", cityProperty);
+        properties.put("latitude", latProperty);
+        properties.put("longitude", lonProperty);
+
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "object");
+        parameters.put("properties", properties);
+        parameters.put("required", List.of());
+        return parameters;
     }
 
     /**
@@ -120,8 +140,8 @@ public class GetWeatherTool implements AgentTool {
             trace.step(TracePhase.TOOL,
                     "懒加载闸门拦截：技能【{0}】正文尚未加载，{1} 暂不执行，要求模型先加载指令",
                     SKILL_NAME, TOOL_NAME);
-            return Mono.just(ToolResultBlock.error("请先调用 load-skill-instructions（skillName="
-                    + SKILL_NAME + "）加载技能指令，再重试 " + TOOL_NAME));
+            return Mono.just(ToolResultBlock.error(
+                    promptStore.format(AiConstants.PROMPT_SKILL_GATE_BLOCKED, SKILL_NAME, TOOL_NAME)));
         }
         long startMillis = System.currentTimeMillis();
         Map<String, Object> input = param.getInput();
@@ -140,14 +160,15 @@ public class GetWeatherTool implements AgentTool {
         String result;
         if (Objects.nonNull(latitude) && Objects.nonNull(longitude)) {
             // 经纬度模式（当前位置链路）
-            result = queryByCoordinates(StringUtilExt.defaultIfBlank(city, "当前位置"),
+            result = queryByCoordinates(StringUtilExt.defaultIfBlank(city,
+                    promptStore.require(AiConstants.PROMPT_WEATHER_LOCATION_DEFAULT)),
                     latitude, longitude, trace);
         } else if (StringUtilExt.isNotBlank(city)) {
             // 城市模式
             result = queryByCity(StringUtilExt.trim(city), trace);
         } else {
             return Mono.just(ToolResultBlock.error(
-                    "get-weather 需要提供 city，或 latitude+longitude，但调用中两者都为空"));
+                    promptStore.require(AiConstants.PROMPT_WEATHER_ARG_MISSING)));
         }
 
         long elapsedMillis = System.currentTimeMillis() - startMillis;
@@ -163,7 +184,8 @@ public class GetWeatherTool implements AgentTool {
             trace.stepWithDuration(TracePhase.TOOL, elapsedMillis,
                     "主源 Open-Meteo 与兜底 wttr.in 均不可用");
         }
-        return Mono.just(ToolResultBlock.error("两个开源天气数据源（Open-Meteo、wttr.in）均不可用"));
+        return Mono.just(ToolResultBlock.error(
+                promptStore.require(AiConstants.PROMPT_WEATHER_SOURCE_FAIL)));
     }
 
     /**
@@ -257,12 +279,13 @@ public class GetWeatherTool implements AgentTool {
                     .body(String.class);
             JSONObject current = JSON.parseObject(body).getJSONObject("current");
             int weatherCode = current.getIntValue("weather_code");
-            return "【" + locationName + "实时天气】"
-                    + "天气：" + describeWmoCode(weatherCode)
-                    + "；温度：" + current.getBigDecimal("temperature_2m") + "℃"
-                    + "；相对湿度：" + current.getBigDecimal("relative_humidity_2m") + "%"
-                    + "；风速：" + current.getBigDecimal("wind_speed_10m") + " km/h"
-                    + "；观测时间：" + current.getString("time");
+            return promptStore.format(AiConstants.PROMPT_WEATHER_RESULT_METEO,
+                    locationName,
+                    describeWmoCode(weatherCode),
+                    current.getBigDecimal("temperature_2m"),
+                    current.getBigDecimal("relative_humidity_2m"),
+                    current.getBigDecimal("wind_speed_10m"),
+                    current.getString("time"));
         } catch (RuntimeException e) {
             LogUtilExt.warn(log, "[WeatherTool] Open-Meteo 查询失败: {0}", e.getMessage());
             if (Objects.nonNull(trace)) {
@@ -297,12 +320,13 @@ public class GetWeatherTool implements AgentTool {
             String weatherText = Objects.nonNull(zhDescriptions)
                     ? zhDescriptions.getJSONObject(0).getString("value")
                     : condition.getJSONArray("weatherDesc").getJSONObject(0).getString("value");
-            return "【" + locationName + "实时天气】"
-                    + "天气：" + weatherText
-                    + "；温度：" + condition.getString("temp_C") + "℃"
-                    + "；体感：" + condition.getString("FeelsLikeC") + "℃"
-                    + "；相对湿度：" + condition.getString("humidity") + "%"
-                    + "；风速：" + condition.getString("windspeedKmph") + " km/h";
+            return promptStore.format(AiConstants.PROMPT_WEATHER_RESULT_WTTR,
+                    locationName,
+                    weatherText,
+                    condition.getString("temp_C"),
+                    condition.getString("FeelsLikeC"),
+                    condition.getString("humidity"),
+                    condition.getString("windspeedKmph"));
         } catch (RuntimeException e) {
             LogUtilExt.warn(log, "[WeatherTool] wttr.in 查询也失败: {0}", e.getMessage());
             if (Objects.nonNull(trace)) {
@@ -340,7 +364,7 @@ public class GetWeatherTool implements AgentTool {
             case 85, 86 -> "阵雪";
             case 95 -> "雷暴";
             case 96, 99 -> "雷暴伴冰雹";
-            default -> "未知（WMO code=" + code + "）";
+            default -> promptStore.format(AiConstants.PROMPT_WEATHER_WMO_UNKNOWN, code);
         };
     }
 

@@ -4,6 +4,8 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
 import com.dayu.yiyibushe.infra.ai.trace.TracePhase;
@@ -53,6 +55,10 @@ public class GetCurrentLocationTool implements AgentTool {
     @Autowired
     private RestClient restClient;
 
+    /** 提示词存储：工具描述与错误文案从此读取 */
+    @Autowired
+    private PromptStore promptStore;
+
     /**
      * 工具名称
      *
@@ -70,8 +76,7 @@ public class GetCurrentLocationTool implements AgentTool {
      */
     @Override
     public String getDescription() {
-        return "按当前网络出口 IP 获取当前所在位置，返回城市名、纬度、经度。无参数。"
-                + "当用户询问当前位置天气但没有给出城市名时，先调用本工具，再用经纬度调用 get-weather。";
+        return promptStore.require(AiConstants.PROMPT_LOCATION_TOOL_DESC);
     }
 
     /**
@@ -103,8 +108,8 @@ public class GetCurrentLocationTool implements AgentTool {
             trace.step(TracePhase.TOOL,
                     "懒加载闸门拦截：技能【{0}】正文尚未加载，{1} 暂不执行，要求模型先加载指令",
                     SKILL_NAME, TOOL_NAME);
-            return Mono.just(ToolResultBlock.error("请先调用 load-skill-instructions（skillName="
-                    + SKILL_NAME + "）加载技能指令，再重试 " + TOOL_NAME));
+            return Mono.just(ToolResultBlock.error(
+                    promptStore.format(AiConstants.PROMPT_SKILL_GATE_BLOCKED, SKILL_NAME, TOOL_NAME)));
         }
         long startMillis = System.currentTimeMillis();
         if (Objects.nonNull(trace)) {
@@ -120,9 +125,11 @@ public class GetCurrentLocationTool implements AgentTool {
                 if (Objects.nonNull(trace)) {
                     trace.step(TracePhase.TOOL, "定位接口返回失败：{0}", json.getString("message"));
                 }
-                return Mono.just(ToolResultBlock.error("定位失败: " + json.getString("message")));
+                return Mono.just(ToolResultBlock.error(
+                        promptStore.format(AiConstants.PROMPT_LOCATION_FAIL, json.getString("message"))));
             }
-            String city = StringUtilExt.defaultIfBlank(json.getString("city"), "未知");
+            String city = StringUtilExt.defaultIfBlank(json.getString("city"),
+                    promptStore.require(AiConstants.PROMPT_LOCATION_CITY_DEFAULT));
             // 动态结果容器：lat/lon/query 字段可能缺失为 null，Map.of 会 NPE
             Map<String, Object> locationResult = new LinkedHashMap<>();
             locationResult.put("city", city);
@@ -145,7 +152,8 @@ public class GetCurrentLocationTool implements AgentTool {
                 trace.stepWithDuration(TracePhase.TOOL, System.currentTimeMillis() - startMillis,
                         "定位异常（无兜底源）：{0}", e.getMessage());
             }
-            return Mono.just(ToolResultBlock.error("定位异常: " + e.getMessage()));
+            return Mono.just(ToolResultBlock.error(
+                    promptStore.format(AiConstants.PROMPT_LOCATION_ERROR, e.getMessage())));
         }
     }
 

@@ -114,10 +114,10 @@ public class AsyncDashScopeClient {
     private static final String MESSAGE_POINTER = "$.output.message";
 
     /** 模型定义 */
-    private final ModelDefinition model;
+    private ModelDefinition model;
 
     /** HTTP 客户端（构造时完成鉴权头装配） */
-    private final RestClient restClient;
+    private RestClient restClient;
 
     /**
      * 静态工厂：校验入参并装配鉴权客户端
@@ -142,20 +142,10 @@ public class AsyncDashScopeClient {
                 .defaultHeader(HEADER_DASHSCOPE_ASYNC, ASYNC_ENABLED)
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .build();
-        return new AsyncDashScopeClient(model, restClient);
-    }
-
-    /**
-     * 构造器：只完成字段赋值，鉴权装配由 {@link #create} 负责
-     *
-     * @param model
-     *     异步模型定义
-     * @param restClient
-     *     已装配鉴权头的 HTTP 客户端
-     */
-    private AsyncDashScopeClient(ModelDefinition model, RestClient restClient) {
-        this.model = model;
-        this.restClient = restClient;
+        AsyncDashScopeClient client = new AsyncDashScopeClient();
+        client.model = model;
+        client.restClient = restClient;
+        return client;
     }
 
     /**

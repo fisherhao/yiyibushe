@@ -114,16 +114,19 @@ public class AiMessage implements Serializable {
     }
 
     /**
-     * 构造纯文本消息
+     * 构造纯文本消息（静态工厂，避免带参构造器）
      *
      * @param role
      *     角色
      * @param content
      *     文本内容
+     * @return 文本消息
      */
-    public AiMessage(String role, String content) {
-        this.role = role;
-        this.content = content;
+    public static AiMessage of(String role, String content) {
+        AiMessage message = new AiMessage();
+        message.role = role;
+        message.content = content;
+        return message;
     }
 
     /**
@@ -134,7 +137,7 @@ public class AiMessage implements Serializable {
      * @return user 消息
      */
     public static AiMessage user(String content) {
-        return new AiMessage("user", content);
+        return AiMessage.of("user", content);
     }
 
     /**
@@ -145,7 +148,7 @@ public class AiMessage implements Serializable {
      * @return system 消息
      */
     public static AiMessage system(String content) {
-        return new AiMessage("system", content);
+        return AiMessage.of("system", content);
     }
 
     /**
@@ -156,7 +159,7 @@ public class AiMessage implements Serializable {
      * @return assistant 消息
      */
     public static AiMessage assistant(String content) {
-        return new AiMessage("assistant", content);
+        return AiMessage.of("assistant", content);
     }
 
     /**

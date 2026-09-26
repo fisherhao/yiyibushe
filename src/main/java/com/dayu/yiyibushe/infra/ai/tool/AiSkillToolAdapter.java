@@ -26,16 +26,19 @@ public class AiSkillToolAdapter implements AgentTool {
     private static final String PARAM_NAME = "parameters";
 
     /** 被适配的领域技能 */
-    private final AiSkill skill;
+    private AiSkill skill;
 
     /**
-     * 构造器：只完成字段赋值
+     * 静态工厂：把领域技能适配为 AgentScope 工具
      *
      * @param skill
      *     领域技能
+     * @return 适配器
      */
-    public AiSkillToolAdapter(AiSkill skill) {
-        this.skill = skill;
+    public static AiSkillToolAdapter create(AiSkill skill) {
+        AiSkillToolAdapter adapter = new AiSkillToolAdapter();
+        adapter.skill = skill;
+        return adapter;
     }
 
     /**

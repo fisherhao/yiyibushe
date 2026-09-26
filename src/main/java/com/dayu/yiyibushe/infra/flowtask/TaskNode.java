@@ -55,19 +55,6 @@ public class TaskNode {
     }
 
     /**
-     * 构造初始节点模型
-     *
-     * @param nodeType
-     *                  节点类型
-     * @param nodeOrder
-     *                  节点顺序（从 0 开始）
-     */
-    private TaskNode(String nodeType, int nodeOrder) {
-        this.nodeType = nodeType;
-        this.nodeOrder = nodeOrder;
-    }
-
-    /**
      * 构造处于初始状态的节点模型
      *
      * @param nodeType
@@ -77,7 +64,10 @@ public class TaskNode {
      * @return 初始节点模型
      */
     public static TaskNode init(String nodeType, int nodeOrder) {
-        return new TaskNode(nodeType, nodeOrder);
+        TaskNode node = new TaskNode();
+        node.nodeType = nodeType;
+        node.nodeOrder = nodeOrder;
+        return node;
     }
 
     /**
