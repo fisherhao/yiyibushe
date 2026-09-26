@@ -78,7 +78,7 @@ public final class PasswordUtilExt {
         if (StringUtilExt.isBlank(rawPassword) || StringUtilExt.isBlank(storedPassword)) {
             return false;
         }
-        if (storedPassword.startsWith(PBKDF2_PREFIX)) {
+        if (StringUtilExt.startsWith(storedPassword, PBKDF2_PREFIX)) {
             return matchesPbkdf2(rawPassword, storedPassword);
         }
         // 兼容旧版固定盐 SHA-256（64 位十六进制）

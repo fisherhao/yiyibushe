@@ -14,7 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * 说明：节点编排抽象基类（业务侧继承它完成编排）。
  * <p>
- * 编排方式：业务子类在构造器里调用 {@link #registerChain(String, TaskNodeAction...)}，
+ * 编排方式：业务子类在 {@code @PostConstruct} 方法中调用 {@link #registerChain(String, TaskNodeAction...)}，
  * 把同一任务类型的节点动作<strong>按执行顺序</strong>依次传入——
  * 数组顺序即执行顺序（第一个先执行、最后一个收口），框架没有排序值的概念，
  * 引擎用 for 循环按链数组从头跑到尾。
@@ -34,7 +34,7 @@ public abstract class TaskNodeStrategy {
     private final Map<String, List<TaskNodeAction>> chainMap = new ConcurrentHashMap<>();
 
     /**
-     * 构造器（业务子类在构造器中调用 {@link #registerChain} 完成编排）
+     * 构造器（业务子类在 @PostConstruct 方法中调用 {@link #registerChain} 完成编排）
      */
     protected TaskNodeStrategy() {
     }

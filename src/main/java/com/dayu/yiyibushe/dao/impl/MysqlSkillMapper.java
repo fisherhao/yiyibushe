@@ -3,6 +3,7 @@ package com.dayu.yiyibushe.dao.impl;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.id.IdUtil;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.dao.mapper.SkillMapper;
 import com.dayu.yiyibushe.dao.mybatis.SkillMybatisMapper;
 import com.dayu.yiyibushe.dao.po.SkillPO;
@@ -41,8 +42,7 @@ public class MysqlSkillMapper implements SkillMapper {
 
     @Override
     public List<SkillDefinition> selectAll() {
-        return skillMybatisMapper.selectAll()
-                .stream()
+        return CollectionUtilExt.toStream(skillMybatisMapper.selectAll())
                 .map(this::toDefinition)
                 .toList();
     }

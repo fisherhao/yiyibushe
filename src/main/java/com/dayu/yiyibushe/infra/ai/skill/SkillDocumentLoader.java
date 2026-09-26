@@ -1,11 +1,15 @@
 package com.dayu.yiyibushe.infra.ai.skill;
 
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.yaml.snakeyaml.Yaml;
 
@@ -16,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.dayu.yiyibushe.infra.ai.constant.AiConstants.SKILL_LOCATION_PATTERN;
 
 /**
  * Skill 文档加载器：启动时扫描 classpath 下全部 SKILL.md（skills 目录下每个技能一个子目录）， 按 Agent Skills
@@ -37,19 +43,12 @@ public class SkillDocumentLoader {
     private static final Logger log = LogUtilExt.getLogger(SkillDocumentLoader.class);
 
     /**
-     * Skill 扫描路径：classpath 下每个 skill 一个目录
-     */
-    private static final String SKILL_LOCATION_PATTERN = "classpath*:skills/*/SKILL.md";
-
-    /**
-     * frontmatter 起始标记
-     */
-    private static final String FRONTMATTER_DELIMITER = "---";
-
-    /**
      * 技能文档表：name -> document
      */
     private final Map<String, SkillDocument> skillDocuments = new ConcurrentHashMap<>();
+
+    @Autowired
+    private PromptStore promptStore;
 
     /**
      * 启动时扫描并解析全部 SKILL.md（metadata 与正文都解析进内存； 正文只在技能命中、模型调用 load-skill-instructions
@@ -64,7 +63,7 @@ public class SkillDocumentLoader {
                 loadOne(resource);
             }
             LogUtilExt.info(log, "[SkillLoader] 已加载 {0} 个 Skill 元数据: {1}",
-                    skillDocuments.size(), new ArrayList<>(skillDocuments.keySet()));
+                    CollectionUtilExt.getSize(skillDocuments), new ArrayList<>(skillDocuments.keySet()));
         } catch (Exception e) {
             LogUtilExt.error(log, "[SkillLoader] Skill 扫描失败: {0}", e.getMessage(), e);
         }
@@ -84,19 +83,22 @@ public class SkillDocumentLoader {
         try (InputStream inputStream = resource.getInputStream()) {
             content = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }
-        if (!content.startsWith(FRONTMATTER_DELIMITER)) {
+        if (!StringUtilExt.startsWith(content, AiConstants.FRONTMATTER_DELIMITER)) {
             LogUtilExt.warn(log, "[SkillLoader] 跳过缺少 frontmatter 的文件: {0}", resource.getURI());
             return;
         }
 
-        // frontmatter：第一个 --- 与第二个 --- 之间
-        int closingIndex = content.indexOf('\n' + FRONTMATTER_DELIMITER, FRONTMATTER_DELIMITER.length());
-        String frontmatterText = content
-                .substring(FRONTMATTER_DELIMITER.length(), closingIndex)
-                .trim();
-        String instructions = content
-                .substring(closingIndex + FRONTMATTER_DELIMITER.length() + 1)
-                .trim();
+        // frontmatter：第一个 --- 与第二个 --- 之间（空安全查找，未找到返回 -1）
+        int closingIndex = StringUtilExt.indexOf(content,
+                '\n' + AiConstants.FRONTMATTER_DELIMITER, AiConstants.FRONTMATTER_DELIMITER.length());
+        if (closingIndex < 0) {
+            LogUtilExt.warn(log, "[SkillLoader] 跳过 frontmatter 未闭合的文件: {0}", resource.getURI());
+            return;
+        }
+        String frontmatterText = StringUtilExt.trim(StringUtilExt.substring(content,
+                AiConstants.FRONTMATTER_DELIMITER.length(), closingIndex));
+        String instructions = StringUtilExt.trim(StringUtilExt.substring(content,
+                closingIndex + AiConstants.FRONTMATTER_DELIMITER.length() + 1));
 
         Map<String, Object> metadata = new Yaml().load(frontmatterText);
         String name = Objects.toString(metadata.get("name"), "");
@@ -130,15 +132,17 @@ public class SkillDocumentLoader {
     }
 
     /**
-     * 把全部 Skill 的 metadata 拼成系统提示片段（启动预加载，供模型做触发判断）
+     * 把全部 Skill 的 metadata 拼成系统提示片段：头部模板来自提示词库，
+     * 其后逐条渲染技能 name/description（启动预加载，供模型做触发判断）
      *
      * @return metadata 文本，无 Skill 时返回空串
      */
     public String buildMetadataPrompt() {
-        if (skillDocuments.isEmpty()) {
+        if (CollectionUtilExt.isEmpty(skillDocuments)) {
             return "";
         }
-        StringBuilder builder = new StringBuilder("以下是可用的技能，用户请求与描述匹配时按技能指令执行：\n");
+        StringBuilder builder = new StringBuilder(
+                promptStore.require(AiConstants.PROMPT_SKILL_METADATA_HEADER));
         for (SkillDocument document : skillDocuments.values()) {
             builder
                     .append("- ")

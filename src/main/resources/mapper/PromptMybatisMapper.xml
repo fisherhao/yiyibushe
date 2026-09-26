@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- AI 提示词表 ai_prompt -->
+<mapper namespace="com.dayu.yiyibushe.dao.mybatis.PromptMybatisMapper">
+
+    <sql id="selectColumns">
+        id, prompt_code, prompt_name, category, content, status, version, remark,
+        gmt_create, gmt_modify
+    </sql>
+
+    <select id="selectAll" resultType="com.dayu.yiyibushe.dao.po.PromptPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_prompt
+        ORDER BY id
+    </select>
+
+    <select id="selectByPromptCode" resultType="com.dayu.yiyibushe.dao.po.PromptPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_prompt
+        WHERE prompt_code = #{promptCode}
+    </select>
+
+    <select id="selectByVersionGreaterThan" resultType="com.dayu.yiyibushe.dao.po.PromptPO">
+        SELECT <include refid="selectColumns"/>
+        FROM ai_prompt
+        WHERE version &gt; #{version}
+        ORDER BY version
+    </select>
+
+    <insert id="insert">
+        INSERT INTO ai_prompt (prompt_code, prompt_name, category, content, status, version, remark)
+        VALUES (#{promptCode}, #{promptName}, #{category}, #{content}, #{status}, #{version}, #{remark})
+    </insert>
+
+</mapper>

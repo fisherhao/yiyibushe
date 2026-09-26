@@ -5,6 +5,7 @@ import com.dayu.yiyibushe.common.util.LogUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.dao.mybatis.CredentialMybatisMapper;
 import com.dayu.yiyibushe.dao.po.CredentialPO;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Primary;
@@ -34,9 +35,6 @@ import java.util.Objects;
 public class DbCredentialStore implements CredentialStore {
 
     private static final Logger log = LogUtilExt.getLogger(DbCredentialStore.class);
-
-    /** 凭证启用状态 */
-    private static final String STATUS_ENABLED = "ENABLED";
 
     @Autowired
     private CredentialMybatisMapper credentialMybatisMapper;
@@ -141,7 +139,7 @@ public class DbCredentialStore implements CredentialStore {
         credentialPO.setProvider(provider);
         credentialPO.setAppKey(credential.getAppKey());
         credentialPO.setAppSecret(credential.getAppSecret());
-        credentialPO.setStatus(STATUS_ENABLED);
+        credentialPO.setStatus(AiConstants.STATUS_ENABLED);
         return credentialPO;
     }
 }

@@ -1,6 +1,7 @@
 package com.dayu.yiyibushe.infra.ai.trace;
 
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import org.slf4j.Logger;
 
@@ -9,6 +10,7 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -153,10 +155,11 @@ public class ExecutionTrace {
      */
     private void recordStep(String phase, Long durationMillis, String pattern, Object... args) {
         String content = renderPattern(pattern, args);
-        TraceStep traceStep = new TraceStep(steps.size() + 1, System.currentTimeMillis(),
-                durationMillis, phase, content);
+        TraceStep traceStep = new TraceStep(CollectionUtilExt.getSize(steps) + 1,
+                System.currentTimeMillis(), durationMillis, phase, content);
         steps.add(traceStep);
-        String durationText = durationMillis == null ? "" : " (" + durationMillis + "ms)";
+        String durationText = Objects.isNull(durationMillis) ? ""
+                : " (" + durationMillis + "ms)";
         LogUtilExt.info(log, "[Trace] 步骤{0} [{1}] {2}{3}",
                 traceStep.index(), phase, content, durationText);
     }
@@ -174,8 +177,8 @@ public class ExecutionTrace {
         String result = pattern;
         for (int i = 0; i < args.length; i++) {
             String placeholder = "{" + i + "}";
-            if (result.contains(placeholder)) {
-                result = result.replace(placeholder, String.valueOf(args[i]));
+            if (StringUtilExt.contains(result, placeholder)) {
+                result = StringUtilExt.replace(result, placeholder, String.valueOf(args[i]));
             }
         }
         return result;
@@ -198,7 +201,9 @@ public class ExecutionTrace {
      * @return 出现次数
      */
     public long countByPhase(String phase) {
-        return steps.stream().filter(item -> phase.equals(item.phase())).count();
+        return CollectionUtilExt.toStream(steps)
+                .filter(item -> StringUtilExt.equals(phase, item.phase()))
+                .count();
     }
 
     /**
@@ -215,7 +220,7 @@ public class ExecutionTrace {
                     .append(time)
                     .append(" [").append(step.phase()).append("] ")
                     .append(step.content());
-            if (step.durationMillis() != null) {
+            if (Objects.nonNull(step.durationMillis())) {
                 builder.append(" (").append(step.durationMillis()).append("ms)");
             }
             builder.append('\n');

@@ -1,6 +1,7 @@
 package com.dayu.yiyibushe.infra.ai.credential;
 
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.registry.ProviderInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
@@ -28,12 +29,16 @@ import java.util.Objects;
 @Component
 public class LocalCredentialMigrationSource {
 
-    /** 支持迁移的厂商列表 */
+    /** 支持迁移的厂商列表（以 ProviderInfo 枚举为单一事实源） */
     private static final List<String> SUPPORTED_PROVIDERS = List.of(
-            "dashscope", "openai", "deepseek", "claude", "gemini", "qwen", "doubao", "moonshot");
+            ProviderInfo.DASHSCOPE.getCode(), ProviderInfo.OPENAI.getCode(),
+            ProviderInfo.DEEPSEEK.getCode(), ProviderInfo.CLAUDE.getCode(),
+            ProviderInfo.GEMINI.getCode(), ProviderInfo.QWEN.getCode(),
+            ProviderInfo.DOUBAO.getCode(), ProviderInfo.MOONSHOT.getCode());
 
     /** 阿里系厂商：共用阿里云百炼通用密钥配置 */
-    private static final List<String> ALIYUN_FAMILY_PROVIDERS = List.of("dashscope", "qwen");
+    private static final List<String> ALIYUN_FAMILY_PROVIDERS = List.of(
+            ProviderInfo.DASHSCOPE.getCode(), ProviderInfo.QWEN.getCode());
 
     /** properties 配置前缀 */
     private static final String PROP_PREFIX = "ai.credential.";
@@ -77,7 +82,7 @@ public class LocalCredentialMigrationSource {
      * @return 凭证，全部来源都未配置密钥时返回 null
      */
     private ApiCredential resolveCredential(String provider) {
-        String upper = provider.toUpperCase();
+        String upper = StringUtilExt.upperCase(provider);
 
         // 1. 环境变量
         String appKey = System.getenv(upper + "_APP_KEY");
@@ -101,8 +106,8 @@ public class LocalCredentialMigrationSource {
         if (StringUtilExt.isBlank(appSecret)) {
             return null;
         }
-        String trimmedKey = StringUtilExt.isBlank(appKey) ? null : appKey.trim();
-        return new ApiCredential(trimmedKey, appSecret.trim());
+        String trimmedKey = StringUtilExt.isBlank(appKey) ? null : StringUtilExt.trim(appKey);
+        return new ApiCredential(trimmedKey, StringUtilExt.trim(appSecret));
     }
 
     /**

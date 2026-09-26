@@ -71,7 +71,23 @@ public final class StringUtilExt {
         return StringUtils.defaultString(value);
     }
 
-    // ==================== 截取 ====================
+    // ==================== 查找/截取 ====================
+
+    /**
+     * 从指定下标开始查找子串第一次出现的位置。
+     *
+     * @param value
+     *                被查找字符串
+     * @param search
+     *                待查找子串
+     * @param startPos
+     *                起始下标
+     *
+     * @return 子串下标；value 为 null 或未找到返回 -1
+     */
+    public static int indexOf(String value, String search, int startPos) {
+        return StringUtils.indexOf(value, search, startPos);
+    }
 
     /** 按起止下标截取。 */
     public static String substring(String value, int start) {

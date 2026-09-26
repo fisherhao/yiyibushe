@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 说明：FlowTask 任务模板，业务创建任务的统一入口（对齐 RocketMQTemplate 的定位）。
@@ -108,7 +109,7 @@ public class FlowTaskTemplate {
             throw new BizException(BizErrorCode.TASK_CHAIN_MISSING);
         }
         // taskType 与业务数据共用一份上下文 Map（业务方未传则用空 Map 兜底）
-        Map<String, Object> taskContext = Objects.requireNonNullElse(context, new HashMap<>());
+        Map<String, Object> taskContext = Optional.ofNullable(context).orElseGet(HashMap::new);
         taskContext.put(TaskContext.KEY_TASK_TYPE, taskType);
         FlowTask task = FlowTask.init(gmtFireMillis, priority, taskContext, maxRetry,
                 retryStrategyCode);
@@ -116,8 +117,8 @@ public class FlowTaskTemplate {
         task.setCurrentNodeType(chain.get(0).getNodeType());
         Long taskId = taskStore.save(task);
         LogUtilExt.info(log, "[FlowTask] 任务已创建并入库 taskId={0} taskType={1} 首节点={2} 节点数={3} priority={4} retryStrategy={5}",
-                taskId, taskType, task.getCurrentNodeType(), chain.size(), priority,
-                Objects.requireNonNullElse(retryStrategyCode, "DEFAULT"));
+                taskId, taskType, task.getCurrentNodeType(), CollectionUtilExt.getSize(chain), priority,
+                Optional.ofNullable(retryStrategyCode).orElse("DEFAULT"));
         return taskId;
     }
 

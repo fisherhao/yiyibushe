@@ -2,6 +2,8 @@ package com.dayu.yiyibushe.app.ai.tool;
 
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocument;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocumentLoader;
 import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
@@ -14,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,9 +28,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * 启动阶段只把 SKILL.md 的 name + description（metadata）放进系统提示供模型路由；
  * 模型判断命中某技能后，先调用本工具按 {@code skillName} 取出该 SKILL.md 正文指令，
  * 再按指令调用对应业务工具。正文全程从内存读取、不打外网，这就是"渐进式披露"。
+ * <p>
+ * 工具描述、入参描述与缺参提示均来自提示词库，改库即生效。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.1
+ * @version 0.0.2
  */
 @Component
 public class LoadSkillInstructionsTool implements AgentTool {
@@ -37,6 +42,10 @@ public class LoadSkillInstructionsTool implements AgentTool {
 
     /** 命中次数：测试用于验证技能正文是否被按需加载 */
     private final AtomicInteger callCount = new AtomicInteger();
+
+    /** 提示词存储：工具描述与错误提示从此读取 */
+    @Autowired
+    private PromptStore promptStore;
 
     /** SKILL.md 加载器：正文在启动时已解析进内存，这里直接取 */
     @Autowired
@@ -59,24 +68,29 @@ public class LoadSkillInstructionsTool implements AgentTool {
      */
     @Override
     public String getDescription() {
-        return "按技能名加载该技能 SKILL.md 的完整执行指令（正文）。"
-                + "当你根据技能目录判断用户请求命中某个技能后，必须先调用本工具（入参 skillName "
-                + "为技能目录中的名称），读到指令后再调用该技能的业务工具。无外网请求，直接从内存读取。";
+        return promptStore.require(AiConstants.PROMPT_LOAD_SKILL_TOOL_DESC);
     }
 
     /**
-     * 入参 JSON Schema：skillName 必填
+     * 入参 JSON Schema：skillName 必填（参数描述来自提示词库）
      *
      * @return 参数 schema
      */
     @Override
     public Map<String, Object> getParameters() {
-        return Map.of(
-                "type", "object",
-                "properties", Map.of(
-                        "skillName", Map.of("type", "string",
-                                "description", "技能名（技能目录中列出的 name），如 current-weather")),
-                "required", List.of("skillName"));
+        Map<String, Object> skillNameProperty = new LinkedHashMap<>();
+        skillNameProperty.put("type", "string");
+        skillNameProperty.put("description",
+                promptStore.require(AiConstants.PROMPT_LOAD_SKILL_ARG_DESC));
+
+        Map<String, Object> properties = new LinkedHashMap<>();
+        properties.put("skillName", skillNameProperty);
+
+        Map<String, Object> parameters = new LinkedHashMap<>();
+        parameters.put("type", "object");
+        parameters.put("properties", properties);
+        parameters.put("required", List.of("skillName"));
+        return parameters;
     }
 
     /**
@@ -100,10 +114,11 @@ public class LoadSkillInstructionsTool implements AgentTool {
         }
 
         if (StringUtilExt.isBlank(skillName)) {
-            return Mono.just(ToolResultBlock.error("load-skill-instructions 缺少必填参数 skillName"));
+            return Mono.just(ToolResultBlock.error(
+                    promptStore.require(AiConstants.PROMPT_LOAD_SKILL_MISSING_ARG)));
         }
 
-        SkillDocument skillDocument = skillDocumentLoader.getSkill(skillName.trim());
+        SkillDocument skillDocument = skillDocumentLoader.getSkill(StringUtilExt.trim(skillName));
         if (Objects.isNull(skillDocument)) {
             if (Objects.nonNull(trace)) {
                 trace.step(TracePhase.TOOL, "技能【{0}】不存在，可用技能：{1}",
@@ -118,7 +133,7 @@ public class LoadSkillInstructionsTool implements AgentTool {
             trace.hitSkill(skillDocument.name());
             trace.step(TracePhase.SKILL,
                     "技能正文懒加载完成：从内存读取【{0}】SKILL.md 正文 {1} 字符（无外网请求），指令回传模型",
-                    skillDocument.name(), skillDocument.instructions().length());
+                    skillDocument.name(), StringUtilExt.length(skillDocument.instructions()));
             // 打开闸门：此后该技能的业务工具才允许执行
             trace.markSkillInstructionsLoaded(skillDocument.name());
         }

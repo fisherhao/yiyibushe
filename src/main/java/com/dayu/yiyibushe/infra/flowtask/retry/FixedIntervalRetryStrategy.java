@@ -18,18 +18,8 @@ public class FixedIntervalRetryStrategy implements RetryStrategy {
     public static final String CODE = "FIXED";
 
     /** 固定重试间隔（毫秒） */
-    private final long intervalMillis;
-
-    /**
-     * 构造器
-     *
-     * @param intervalMillis
-     *     固定重试间隔（毫秒），来自配置 flowtask.retry.fixed-interval-millis
-     */
-    public FixedIntervalRetryStrategy(
-            @Value("${flowtask.retry.fixed-interval-millis:300000}") long intervalMillis) {
-        this.intervalMillis = intervalMillis;
-    }
+    @Value("${flowtask.retry.fixed-interval-millis:300000}")
+    private long intervalMillis;
 
     /**
      * 获取策略标识

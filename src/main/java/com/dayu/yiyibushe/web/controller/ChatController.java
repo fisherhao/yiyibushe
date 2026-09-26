@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 统一对话接口：自然语言驱动，由大模型自行路由技能。
@@ -40,7 +40,7 @@ public class ChatController {
      */
     @PostMapping("/message")
     public ChatResponse chat(@RequestBody Map<String, String> request) {
-        String message = Objects.requireNonNullElse(request.get("message"), "");
+        String message = Optional.ofNullable(request.get("message")).orElse("");
 
         ExecutionTrace trace = new ExecutionTrace();
         trace.step(TracePhase.REQUEST,

@@ -89,7 +89,9 @@ public enum BizErrorCode implements ErrorCode {
     /** 同一任务类型下节点类型重复 */
     TASK_NODE_TYPE_DUPLICATED("3035", "同一任务类型下节点类型不能重复"),
     /** 任务指定的重试策略不存在 */
-    TASK_RETRY_STRATEGY_MISSING("3036", "任务指定的重试策略不存在");
+    TASK_RETRY_STRATEGY_MISSING("3036", "任务指定的重试策略不存在"),
+    /** 提示词未配置或已下线 */
+    PROMPT_MISSING("3041", "提示词未配置或已下线");
 
     private final String code;
     private final String msg;

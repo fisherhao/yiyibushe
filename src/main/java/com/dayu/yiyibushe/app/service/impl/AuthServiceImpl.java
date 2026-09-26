@@ -53,9 +53,10 @@ public class AuthServiceImpl implements AuthService {
             throw new BizException(BizErrorCode.USERNAME_EXISTS);
         }
         UserPO userPO = new UserPO();
-        userPO.setUsername(username.trim());
+        userPO.setUsername(StringUtilExt.trim(username));
         userPO.setPassword(PasswordUtilExt.encode(rawPassword));
-        userPO.setNickname(StringUtilExt.isBlank(nickname) ? username.trim() : nickname.trim());
+        userPO.setNickname(StringUtilExt.isBlank(nickname) ? StringUtilExt.trim(username)
+                : StringUtilExt.trim(nickname));
         userPO.setStatus(USER_STATUS_ACTIVE);
         // gmt_create / gmt_modify 由数据库默认值填充，这里不传时间
         userMapper.insert(userPO);

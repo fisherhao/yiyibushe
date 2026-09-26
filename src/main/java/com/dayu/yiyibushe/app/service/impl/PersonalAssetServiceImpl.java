@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 个人素材服务实现。
@@ -189,6 +190,6 @@ public class PersonalAssetServiceImpl implements PersonalAssetService {
     private static AssetItem toItem(AssetPO assetPO) {
         return new AssetItem(assetPO.getAssetId(), assetPO.getObjectKey(), assetPO.getUrl(),
                 assetPO.getCategory(), assetPO.getFileName(),
-                Objects.requireNonNullElse(assetPO.getFileSize(), 0L), assetPO.getUserId());
+                Optional.ofNullable(assetPO.getFileSize()).orElse(0L), assetPO.getUserId());
     }
 }

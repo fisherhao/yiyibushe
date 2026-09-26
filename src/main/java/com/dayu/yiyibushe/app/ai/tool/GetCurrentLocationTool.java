@@ -16,6 +16,7 @@ import org.springframework.web.client.RestClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import reactor.core.publisher.Mono;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -115,19 +116,21 @@ public class GetCurrentLocationTool implements AgentTool {
         try {
             String body = restClient.get().uri(IP_LOCATION_API).retrieve().body(String.class);
             JSONObject json = JSON.parseObject(body);
-            if (!"success".equals(json.getString("status"))) {
+            if (!StringUtilExt.equals("success", json.getString("status"))) {
                 if (Objects.nonNull(trace)) {
                     trace.step(TracePhase.TOOL, "定位接口返回失败：{0}", json.getString("message"));
                 }
                 return Mono.just(ToolResultBlock.error("定位失败: " + json.getString("message")));
             }
             String city = StringUtilExt.defaultIfBlank(json.getString("city"), "未知");
-            String resultText = JSON.toJSONString(Map.of(
-                    "city", city,
-                    "region", StringUtilExt.defaultIfBlank(json.getString("regionName"), ""),
-                    "latitude", json.getBigDecimal("lat"),
-                    "longitude", json.getBigDecimal("lon"),
-                    "ip", json.getString("query")));
+            // 动态结果容器：lat/lon/query 字段可能缺失为 null，Map.of 会 NPE
+            Map<String, Object> locationResult = new LinkedHashMap<>();
+            locationResult.put("city", city);
+            locationResult.put("region", StringUtilExt.defaultIfBlank(json.getString("regionName"), ""));
+            locationResult.put("latitude", json.getBigDecimal("lat"));
+            locationResult.put("longitude", json.getBigDecimal("lon"));
+            locationResult.put("ip", json.getString("query"));
+            String resultText = JSON.toJSONString(locationResult);
             LogUtilExt.info(log, "[LocationTool] 当前位置: city={0} lat={1} lon={2}",
                     city, json.getBigDecimal("lat"), json.getBigDecimal("lon"));
             if (Objects.nonNull(trace)) {

@@ -1,6 +1,8 @@
 package com.dayu.yiyibushe.infra.flowtask;
 
 import com.dayu.yiyibushe.common.id.IdUtil;
+import com.dayu.yiyibushe.common.exception.BizException;
+import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.dao.mybatis.FlowTaskMybatisMapper;
 import com.dayu.yiyibushe.dao.mybatis.TaskNodeMybatisMapper;
@@ -13,6 +15,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 说明：FlowTask 持久化仓库，MySQL 双表落库。
@@ -51,7 +54,9 @@ public class TaskStore {
      */
     @Transactional
     public Long save(FlowTask task) {
-        Objects.requireNonNull(task, "任务不能为空");
+        if (Objects.isNull(task)) {
+            throw new BizException(ParamErrorCode.PARAM_NULL);
+        }
         if (Objects.isNull(task.getTaskId())) {
             task.setTaskId(IdUtil.nextId());
             flowTaskMybatisMapper.insert(task);
@@ -71,7 +76,9 @@ public class TaskStore {
      */
     @Transactional
     public void saveNode(TaskNode nodeRecord) {
-        Objects.requireNonNull(nodeRecord, "节点记录不能为空");
+        if (Objects.isNull(nodeRecord)) {
+            throw new BizException(ParamErrorCode.PARAM_NULL);
+        }
         if (Objects.isNull(nodeRecord.getTaskNodeId())) {
             nodeRecord.setTaskNodeId(IdUtil.nextId());
             taskNodeMybatisMapper.insert(toTaskNodePO(nodeRecord));
@@ -141,7 +148,7 @@ public class TaskStore {
      */
     private static TaskNode toNodeRecord(TaskNodePO nodePO) {
         TaskNode nodeRecord = TaskNode.init(nodePO.getNodeType(),
-                nodePO.getNodeOrder() == null ? 0 : nodePO.getNodeOrder());
+                Optional.ofNullable(nodePO.getNodeOrder()).orElse(0));
         nodeRecord.setId(nodePO.getId());
         nodeRecord.setTaskNodeId(nodePO.getTaskNodeId());
         nodeRecord.setTaskId(nodePO.getTaskId());

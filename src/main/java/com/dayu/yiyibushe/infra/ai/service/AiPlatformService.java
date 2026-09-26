@@ -334,11 +334,11 @@ public class AiPlatformService {
         if (Objects.isNull(response)) {
             return null;
         }
-        List<TextBlock> textBlocks = response.getContent().stream()
+        List<TextBlock> textBlocks = CollectionUtilExt.toStream(response.getContent())
                 .filter(TextBlock.class::isInstance)
                 .map(TextBlock.class::cast)
                 .toList();
-        if (textBlocks.isEmpty()) {
+        if (CollectionUtilExt.isEmpty(textBlocks)) {
             return null;
         }
         StringBuilder text = new StringBuilder();
@@ -416,7 +416,8 @@ public class AiPlatformService {
         if (!definition.isAsync()) {
             throw new BizException(BizErrorCode.MODEL_SYNC_NO_SUBMIT);
         }
-        return new AsyncDashScopeClient(definition, credentialManager.requireSecret(definition.getProvider()));
+        return AsyncDashScopeClient.create(definition,
+                credentialManager.requireSecret(definition.getProvider()));
     }
 
     /**

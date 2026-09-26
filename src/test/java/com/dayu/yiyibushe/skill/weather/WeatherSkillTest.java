@@ -6,6 +6,8 @@ import com.dayu.yiyibushe.app.ai.tool.GetTechNewsTool;
 import com.dayu.yiyibushe.app.ai.tool.GetWeatherTool;
 import com.dayu.yiyibushe.app.ai.tool.LoadSkillInstructionsTool;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocument;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocumentLoader;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
@@ -55,6 +57,10 @@ class WeatherSkillTest {
     @Autowired
     private AssistantChatAgent assistantChatAgent;
 
+    /** 提示词存储（固定话术的期望值来源） */
+    @Autowired
+    private PromptStore promptStore;
+
     /** 定位工具（读取命中计数） */
     @Autowired
     private GetCurrentLocationTool getCurrentLocationTool;
@@ -101,8 +107,8 @@ class WeatherSkillTest {
         String reply = assistantChatAgent.chat("现在几点了？今天星期几？", trace);
         LogUtilExt.info(log, "[WeatherSkillTest] 问时间回复: {0}", reply);
 
-        assertEquals(AssistantChatAgent.OUT_OF_SCOPE_REPLY, reply,
-                "超出范畴的问题应回复固定话术");
+        assertEquals(promptStore.require(AiConstants.PROMPT_OUT_OF_SCOPE_REPLY), reply,
+                "超出范畴的问题应回复提示词库中的固定话术");
         assertEquals(locationBefore, getCurrentLocationTool.getCallCount(), "问时间不应命中定位工具");
         assertEquals(weatherBefore, getWeatherTool.getCallCount(), "问时间不应命中天气工具");
         assertEquals(newsBefore, getTechNewsTool.getCallCount(), "问时间不应命中新闻工具");

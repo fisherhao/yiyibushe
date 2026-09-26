@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
@@ -143,7 +144,7 @@ public class GetWeatherTool implements AgentTool {
                     latitude, longitude, trace);
         } else if (StringUtilExt.isNotBlank(city)) {
             // 城市模式
-            result = queryByCity(city.trim(), trace);
+            result = queryByCity(StringUtilExt.trim(city), trace);
         } else {
             return Mono.just(ToolResultBlock.error(
                     "get-weather 需要提供 city，或 latitude+longitude，但调用中两者都为空"));
@@ -184,7 +185,7 @@ public class GetWeatherTool implements AgentTool {
                     .retrieve()
                     .body(String.class);
             JSONArray searchResults = JSON.parseObject(geoBody).getJSONArray("results");
-            if (Objects.nonNull(searchResults) && !searchResults.isEmpty()) {
+            if (CollectionUtilExt.isNotEmpty(searchResults)) {
                 JSONObject location = searchResults.getJSONObject(0);
                 double resolvedLat = location.getDoubleValue("latitude");
                 double resolvedLon = location.getDoubleValue("longitude");
@@ -292,8 +293,9 @@ public class GetWeatherTool implements AgentTool {
                     .getJSONArray("current_condition")
                     .getJSONObject(0);
             // lang=zh 时取中文描述，取不到回退英文
-            String weatherText = condition.getJSONArray("lang_zh") != null
-                    ? condition.getJSONArray("lang_zh").getJSONObject(0).getString("value")
+            JSONArray zhDescriptions = condition.getJSONArray("lang_zh");
+            String weatherText = Objects.nonNull(zhDescriptions)
+                    ? zhDescriptions.getJSONObject(0).getString("value")
                     : condition.getJSONArray("weatherDesc").getJSONObject(0).getString("value");
             return "【" + locationName + "实时天气】"
                     + "天气：" + weatherText

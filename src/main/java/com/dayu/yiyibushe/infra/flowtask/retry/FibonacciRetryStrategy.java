@@ -20,18 +20,8 @@ public class FibonacciRetryStrategy implements RetryStrategy {
     public static final String CODE = "FIBONACCI";
 
     /** 斐波那契基数（毫秒），序列各项乘以它 */
-    private final long baseMillis;
-
-    /**
-     * 构造器
-     *
-     * @param baseMillis
-     *     斐波那契基数（毫秒），来自配置 flowtask.retry.fibonacci-base-millis
-     */
-    public FibonacciRetryStrategy(
-            @Value("${flowtask.retry.fibonacci-base-millis:60000}") long baseMillis) {
-        this.baseMillis = baseMillis;
-    }
+    @Value("${flowtask.retry.fibonacci-base-millis:60000}")
+    private long baseMillis;
 
     /**
      * 获取策略标识

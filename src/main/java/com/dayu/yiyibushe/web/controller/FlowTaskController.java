@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Objects;
+import java.util.Optional;
 
 /**
  * 说明：FlowTask 任务框架的 HTTP 入口，统一通过 {@link ExecuteTemplate#send} 调用。
@@ -47,12 +47,12 @@ public class FlowTaskController {
     @PostMapping("/create")
     public ApiResult<Long> createTask(@RequestBody CreateFlowTaskDTO request) {
         return ExecuteTemplate.send(request, req -> {
-            long fireMillis = Objects.requireNonNullElseGet(req.getGmtFireMillis(),
-                    System::currentTimeMillis);
-            int priority = Objects.requireNonNullElse(req.getPriority(),
-                    FlowTask.DEFAULT_PRIORITY);
-            int maxRetry = Objects.requireNonNullElse(req.getMaxRetry(),
-                    FlowTaskTemplate.DEFAULT_MAX_RETRY);
+            long fireMillis = Optional.ofNullable(req.getGmtFireMillis())
+                    .orElseGet(System::currentTimeMillis);
+            int priority = Optional.ofNullable(req.getPriority())
+                    .orElse(FlowTask.DEFAULT_PRIORITY);
+            int maxRetry = Optional.ofNullable(req.getMaxRetry())
+                    .orElse(FlowTaskTemplate.DEFAULT_MAX_RETRY);
             return flowTaskTemplate.createTask(req.getTaskType(), fireMillis, priority,
                     req.getContext(), maxRetry, req.getRetryStrategyCode());
         });

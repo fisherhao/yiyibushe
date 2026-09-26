@@ -6,6 +6,7 @@ import com.alibaba.fastjson2.JSONPath;
 import com.dayu.yiyibushe.common.constant.TaskStatus;
 import com.dayu.yiyibushe.common.exception.BizErrorCode;
 import com.dayu.yiyibushe.common.exception.BizException;
+import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.JsonUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.infra.ai.core.AiRequest;
@@ -25,7 +26,7 @@ import java.util.Objects;
  * （X-DashScope-Async），本类按官方 HTTP 协议保留最小实现，取代原
  * GenericModelConnection 中被 AgentScope 替代不了的这部分手写 HTTP 逻辑。
  * <p>
- * 一个实例对应一个异步模型定义，构造时完成鉴权。
+ * 一个实例对应一个异步模型定义，经 {@link #create} 创建时完成鉴权。
  *
  * @author Witty·Kid Fisher
  * @version 0.0.1
@@ -119,21 +120,42 @@ public class AsyncDashScopeClient {
     private final RestClient restClient;
 
     /**
-     * 构造器
+     * 静态工厂：校验入参并装配鉴权客户端
      *
      * @param model
      *     异步模型定义（baseUrl 指向 DashScope）
      * @param secret
      *     厂商密钥
+     *
+     * @return 异步客户端
      */
-    public AsyncDashScopeClient(ModelDefinition model, String secret) {
-        this.model = Objects.requireNonNull(model, "model must not be null");
-        this.restClient = RestClient.builder()
+    public static AsyncDashScopeClient create(ModelDefinition model, String secret) {
+        if (Objects.isNull(model)) {
+            throw new BizException(ParamErrorCode.PARAM_NULL);
+        }
+        if (StringUtilExt.isBlank(secret)) {
+            throw new BizException(BizErrorCode.PROVIDER_CREDENTIAL_MISSING);
+        }
+        RestClient restClient = RestClient.builder()
                 .baseUrl(model.getBaseUrl())
                 .defaultHeader(HEADER_AUTHORIZATION, BEARER_PREFIX + secret)
                 .defaultHeader(HEADER_DASHSCOPE_ASYNC, ASYNC_ENABLED)
                 .defaultHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE)
                 .build();
+        return new AsyncDashScopeClient(model, restClient);
+    }
+
+    /**
+     * 构造器：只完成字段赋值，鉴权装配由 {@link #create} 负责
+     *
+     * @param model
+     *     异步模型定义
+     * @param restClient
+     *     已装配鉴权头的 HTTP 客户端
+     */
+    private AsyncDashScopeClient(ModelDefinition model, RestClient restClient) {
+        this.model = model;
+        this.restClient = restClient;
     }
 
     /**

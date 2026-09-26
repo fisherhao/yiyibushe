@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.infra.ai.trace.AgentToolTraceSupport;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
 import com.dayu.yiyibushe.infra.ai.trace.TracePhase;
@@ -26,6 +27,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -156,7 +158,7 @@ public class GetTechNewsTool implements AgentTool {
 
         // 1. 缓存命中直接返回，不打外网
         CachedNews snapshot = cachedNews;
-        if (snapshot != null && !snapshot.isExpired()) {
+        if (Objects.nonNull(snapshot) && !snapshot.isExpired()) {
             long remainSeconds = Duration.between(Instant.now(), snapshot.expireAt()).toSeconds();
             LogUtilExt.info(log, "[NewsTool] 命中缓存（剩余 {0} 秒），外部请求数不变", remainSeconds);
             if (Objects.nonNull(trace)) {
@@ -230,10 +232,10 @@ public class GetTechNewsTool implements AgentTool {
             }
             String body = restClient.get().uri(GDELT_API).retrieve().body(String.class);
             // GDELT 限频时返回 200 + 纯文本提示
-            if (StringUtilExt.isBlank(body) || body.startsWith("Please limit requests")
-                    || !body.trim().startsWith("{")) {
+            if (StringUtilExt.isBlank(body) || StringUtilExt.startsWith(body, "Please limit requests")
+                    || !StringUtilExt.startsWith(StringUtilExt.trim(body), "{")) {
                 LogUtilExt.warn(log, "[NewsTool] GDELT 不可用（限频或非 JSON）: {0}",
-                        StringUtilExt.substring(StringUtilExt.isBlank(body) ? "" : body.trim(), 0, 120));
+                        StringUtilExt.substring(StringUtilExt.trim(body), 0, 120));
                 if (Objects.nonNull(trace)) {
                     trace.step(TracePhase.TOOL,
                             "GDELT 返回限频提示或非 JSON 内容（HTTP 200），本次尝试放弃");
@@ -241,21 +243,23 @@ public class GetTechNewsTool implements AgentTool {
                 return null;
             }
             JSONArray articles = JSON.parseObject(body).getJSONArray("articles");
-            if (articles == null || articles.isEmpty()) {
+            if (CollectionUtilExt.isEmpty(articles)) {
                 return null;
             }
             List<Map<String, Object>> newsItems = new ArrayList<>();
-            for (int i = 0; i < articles.size(); i++) {
+            for (int i = 0; i < CollectionUtilExt.getSize(articles); i++) {
                 JSONObject article = articles.getJSONObject(i);
-                newsItems.add(Map.of(
-                        "title", article.getString("title"),
-                        "url", article.getString("url"),
-                        "source", StringUtilExt.defaultIfBlank(article.getString("domain"), "GDELT"),
-                        "publishedAt", StringUtilExt.defaultString(article.getString("seendate"))));
+                // 动态容器用 LinkedHashMap：允许 null 值并保序，禁止 Map.of（遇 null 直接 NPE）
+                Map<String, Object> newsItem = new LinkedHashMap<>();
+                newsItem.put("title", article.getString("title"));
+                newsItem.put("url", article.getString("url"));
+                newsItem.put("source", StringUtilExt.defaultIfBlank(article.getString("domain"), "GDELT"));
+                newsItem.put("publishedAt", article.getString("seendate"));
+                newsItems.add(newsItem);
             }
-            LogUtilExt.info(log, "[NewsTool] GDELT 取到 {0} 条", newsItems.size());
+            LogUtilExt.info(log, "[NewsTool] GDELT 取到 {0} 条", CollectionUtilExt.getSize(newsItems));
             if (Objects.nonNull(trace)) {
-                trace.step(TracePhase.TOOL, "GDELT 解析成功，取到 {0} 条科技新闻", newsItems.size());
+                trace.step(TracePhase.TOOL, "GDELT 解析成功，取到 {0} 条科技新闻", CollectionUtilExt.getSize(newsItems));
             }
             return JSON.toJSONString(newsItems);
         } catch (RuntimeException e) {
@@ -296,18 +300,20 @@ public class GetTechNewsTool implements AgentTool {
             List<Map<String, Object>> newsItems = new ArrayList<>();
             for (int i = 0; i < itemNodes.getLength(); i++) {
                 Element item = (Element) itemNodes.item(i);
-                newsItems.add(Map.of(
-                        "title", item.getElementsByTagName("title").item(0).getTextContent(),
-                        "url", item.getElementsByTagName("link").item(0).getTextContent(),
-                        "source", "Wikinews",
-                        "publishedAt", item.getElementsByTagName("pubDate").item(0).getTextContent()));
+                // 动态容器用 LinkedHashMap：DOM 节点缺失时 item(0) 为 null，Map.of 会 NPE
+                Map<String, Object> newsItem = new LinkedHashMap<>();
+                newsItem.put("title", item.getElementsByTagName("title").item(0).getTextContent());
+                newsItem.put("url", item.getElementsByTagName("link").item(0).getTextContent());
+                newsItem.put("source", "Wikinews");
+                newsItem.put("publishedAt", item.getElementsByTagName("pubDate").item(0).getTextContent());
+                newsItems.add(newsItem);
             }
-            if (newsItems.isEmpty()) {
+            if (CollectionUtilExt.isEmpty(newsItems)) {
                 return null;
             }
-            LogUtilExt.info(log, "[NewsTool] Wikinews 取到 {0} 条", newsItems.size());
+            LogUtilExt.info(log, "[NewsTool] Wikinews 取到 {0} 条", CollectionUtilExt.getSize(newsItems));
             if (Objects.nonNull(trace)) {
-                trace.step(TracePhase.TOOL, "Wikinews RSS 解析成功，取到 {0} 条", newsItems.size());
+                trace.step(TracePhase.TOOL, "Wikinews RSS 解析成功，取到 {0} 条", CollectionUtilExt.getSize(newsItems));
             }
             return JSON.toJSONString(newsItems);
         } catch (Exception e) {
@@ -336,7 +342,7 @@ public class GetTechNewsTool implements AgentTool {
             JSONArray idArray = JSON.parseArray(idListJson);
 
             List<Map<String, Object>> newsItems = new ArrayList<>();
-            int fetchCount = Math.min(HN_FETCH_LIMIT, idArray.size());
+            int fetchCount = Math.min(HN_FETCH_LIMIT, CollectionUtilExt.getSize(idArray));
             for (int i = 0; i < fetchCount; i++) {
                 long storyId = idArray.getLongValue(i);
                 try {
@@ -345,30 +351,32 @@ public class GetTechNewsTool implements AgentTool {
                             .retrieve()
                             .body(String.class);
                     JSONObject story = JSON.parseObject(itemJson);
-                    if (!"story".equals(story.getString("type"))) {
+                    if (!StringUtilExt.equals("story", story.getString("type"))) {
                         continue;
                     }
                     String url = StringUtilExt.defaultIfBlank(story.getString("url"),
                             "https://news.ycombinator.com/item?id=" + storyId);
-                    newsItems.add(Map.of(
-                            "title", story.getString("title"),
-                            "url", url,
-                            "source", "Hacker News ("
-                                    + StringUtilExt.defaultString(story.getString("by")) + ")",
-                            "publishedAt", Instant.ofEpochSecond(
-                                    story.getLongValue("time")).toString()));
+                    // 动态容器用 LinkedHashMap：title/by 可能缺失为 null，Map.of 会 NPE
+                    Map<String, Object> newsItem = new LinkedHashMap<>();
+                    newsItem.put("title", story.getString("title"));
+                    newsItem.put("url", url);
+                    newsItem.put("source", "Hacker News ("
+                            + StringUtilExt.defaultString(story.getString("by")) + ")");
+                    newsItem.put("publishedAt", Instant.ofEpochSecond(
+                            story.getLongValue("time")).toString());
+                    newsItems.add(newsItem);
                 } catch (RuntimeException itemException) {
                     // 单条失败跳过，不影响其他条目
                     LogUtilExt.warn(log, "[NewsTool] HN 单条 {0} 失败: {1}",
                             storyId, itemException.getMessage());
                 }
             }
-            if (newsItems.isEmpty()) {
+            if (CollectionUtilExt.isEmpty(newsItems)) {
                 return null;
             }
-            LogUtilExt.info(log, "[NewsTool] Hacker News 取到 {0} 条", newsItems.size());
+            LogUtilExt.info(log, "[NewsTool] Hacker News 取到 {0} 条", CollectionUtilExt.getSize(newsItems));
             if (Objects.nonNull(trace)) {
-                trace.step(TracePhase.TOOL, "Hacker News 详情解析成功，取到 {0} 条", newsItems.size());
+                trace.step(TracePhase.TOOL, "Hacker News 详情解析成功，取到 {0} 条", CollectionUtilExt.getSize(newsItems));
             }
             return JSON.toJSONString(newsItems);
         } catch (RuntimeException e) {

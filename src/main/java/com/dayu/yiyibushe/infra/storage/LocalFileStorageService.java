@@ -19,7 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -70,7 +70,7 @@ public class LocalFileStorageService implements StorageService {
      */
     @Override
     public AssetItem upload(Long userId, AssetCategory category, MultipartFile file) throws IOException {
-        String originalName = Objects.requireNonNullElse(file.getOriginalFilename(), "image.png");
+        String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("image.png");
         String suffix = StringUtilExt.substringAfterLast(originalName, ".");
         String extension = StringUtilExt.isBlank(suffix) ? ".png" : "." + suffix;
         String fileName = UUID.randomUUID().toString().replace("-", "") + extension;

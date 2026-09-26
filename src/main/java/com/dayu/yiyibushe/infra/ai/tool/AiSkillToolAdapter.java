@@ -29,13 +29,13 @@ public class AiSkillToolAdapter implements AgentTool {
     private final AiSkill skill;
 
     /**
-     * 构造器
+     * 构造器：只完成字段赋值
      *
      * @param skill
      *     领域技能
      */
     public AiSkillToolAdapter(AiSkill skill) {
-        this.skill = Objects.requireNonNull(skill, "skill must not be null");
+        this.skill = skill;
     }
 
     /**

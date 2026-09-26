@@ -11,6 +11,8 @@ import com.dayu.yiyibushe.domain.asset.AssetItem;
 import com.dayu.yiyibushe.domain.tryon.OutfitGenerateRequest;
 import com.dayu.yiyibushe.domain.tryon.TryOnTaskResult;
 import com.dayu.yiyibushe.infra.ai.core.AiResponse;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.service.AiPlatformService;
 import com.dayu.yiyibushe.infra.auth.LoginPrincipal;
 import com.dayu.yiyibushe.infra.storage.StorageService;
@@ -59,6 +61,9 @@ public class OutfitServiceImpl implements OutfitService {
 
     @Autowired
     private PersonalAssetService personalAssetService;
+
+    @Autowired
+    private PromptStore promptStore;
 
     /** 任务结果存储（内存，未来可换 Redis） */
     private final Map<String, TryOnTaskResult> resultStore = new ConcurrentHashMap<>();
@@ -129,11 +134,15 @@ public class OutfitServiceImpl implements OutfitService {
             return avatars.get(CollectionUtilExt.getSize(avatars) - 1).url();
         }
         // 没有人物图：按提示词生成一张符合场景的人物形象图
-        String prompt = StringUtilExt.isBlank(request.prompt())
-                ? "一位穿着时尚的年轻人，全身照，真实摄影风格"
-                : request.prompt() + "，人物全身照，真实摄影风格";
+        String personPrompt = StringUtilExt.isBlank(request.prompt())
+                ? promptStore.require(AiConstants.PROMPT_IMAGE_PERSON_DEFAULT)
+                : request.prompt() + promptStore.require(AiConstants.PROMPT_IMAGE_PERSON_SUFFIX);
         LogUtilExt.info(log, "[Outfit] 无人物图，按提示词文生图");
-        return aiPlatformService.generateImage(TEXT_TO_IMAGE_MODEL, prompt, null).get(0);
+        List<String> generatedImages = aiPlatformService.generateImage(TEXT_TO_IMAGE_MODEL, personPrompt, null);
+        if (CollectionUtilExt.isEmpty(generatedImages)) {
+            throw new BizException(BizErrorCode.RESULT_IMAGE_MISSING);
+        }
+        return generatedImages.get(0);
     }
 
     /**

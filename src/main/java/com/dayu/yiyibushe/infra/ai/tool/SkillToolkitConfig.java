@@ -4,6 +4,7 @@ import com.dayu.yiyibushe.domain.ai.skill.AiSkill;
 import io.agentscope.core.tool.AgentTool;
 import io.agentscope.core.tool.Toolkit;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -48,9 +49,9 @@ public class SkillToolkitConfig {
         for (AgentTool agentTool : agentTools) {
             toolkit.registerAgentTool(agentTool);
         }
-        int totalTools = skills.size() + agentTools.size();
+        int totalTools = CollectionUtilExt.getSize(skills) + CollectionUtilExt.getSize(agentTools);
         LogUtilExt.info(log, "[SkillToolkit] 已注册工具 {0} 个（领域技能 {1} + Skill 工具 {2}）",
-                totalTools, skills.size(), agentTools.size());
+                totalTools, CollectionUtilExt.getSize(skills), CollectionUtilExt.getSize(agentTools));
         return toolkit;
     }
 }

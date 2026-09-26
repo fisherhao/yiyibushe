@@ -19,7 +19,7 @@ import java.io.InputStream;
 import java.net.URL;
 import java.time.Duration;
 import java.util.Date;
-import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -56,7 +56,7 @@ public class AliyunOssStorageService implements StorageService {
      */
     @Override
     public AssetItem upload(Long userId, AssetCategory category, MultipartFile file) throws IOException {
-        String originalName = Objects.requireNonNullElse(file.getOriginalFilename(), "image.png");
+        String originalName = Optional.ofNullable(file.getOriginalFilename()).orElse("image.png");
         String suffix = StringUtilExt.substringAfterLast(originalName, ".");
         String key = properties.getAssetPrefix() + userId + "/" + category.getPrefix() + "/"
                 + UUID.randomUUID().toString().replace("-", "") + suffix;

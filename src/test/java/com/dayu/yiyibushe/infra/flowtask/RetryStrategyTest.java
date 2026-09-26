@@ -4,15 +4,19 @@ import com.dayu.yiyibushe.infra.flowtask.retry.FibonacciRetryStrategy;
 import com.dayu.yiyibushe.infra.flowtask.retry.FixedIntervalRetryStrategy;
 import com.dayu.yiyibushe.infra.flowtask.retry.SequenceRetryStrategy;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
  * 说明：重试策略单元测试，验证三种内置策略的间隔计算：
  * 固定间隔、斐波那契序列、自定义分钟序列（含超长兜底）。
+ * <p>
+ * 策略配置改为 @Value 字段注入后，测试用 {@link ReflectionTestUtils} 替换私有配置字段
+ * （spring-test 自带，模拟 Spring 注入），Sequence 再手动触发一次 @PostConstruct 解析。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.1
+ * @version 0.0.2
  */
 class RetryStrategyTest {
 
@@ -24,7 +28,8 @@ class RetryStrategyTest {
      */
     @Test
     void fixed_shouldReturnSameIntervalRegardlessOfRetryCount() {
-        FixedIntervalRetryStrategy strategy = new FixedIntervalRetryStrategy(ONE_MINUTE_MILLIS);
+        FixedIntervalRetryStrategy strategy = new FixedIntervalRetryStrategy();
+        ReflectionTestUtils.setField(strategy, "intervalMillis", ONE_MINUTE_MILLIS);
         assertEquals(FixedIntervalRetryStrategy.CODE, strategy.getCode());
         assertEquals(ONE_MINUTE_MILLIS, strategy.nextIntervalMillis(1));
         assertEquals(ONE_MINUTE_MILLIS, strategy.nextIntervalMillis(4));
@@ -35,7 +40,8 @@ class RetryStrategyTest {
      */
     @Test
     void fibonacci_shouldFollow11235Sequence() {
-        FibonacciRetryStrategy strategy = new FibonacciRetryStrategy(ONE_MINUTE_MILLIS);
+        FibonacciRetryStrategy strategy = new FibonacciRetryStrategy();
+        ReflectionTestUtils.setField(strategy, "baseMillis", ONE_MINUTE_MILLIS);
         assertEquals(FibonacciRetryStrategy.CODE, strategy.getCode());
         assertEquals(ONE_MINUTE_MILLIS, strategy.nextIntervalMillis(1));
         assertEquals(ONE_MINUTE_MILLIS, strategy.nextIntervalMillis(2));
@@ -49,7 +55,9 @@ class RetryStrategyTest {
      */
     @Test
     void sequence_shouldUseConfiguredMinutesAndClampToLastValue() {
-        SequenceRetryStrategy strategy = new SequenceRetryStrategy("3,5,6");
+        SequenceRetryStrategy strategy = new SequenceRetryStrategy();
+        ReflectionTestUtils.setField(strategy, "minutesConfig", "3,5,6");
+        strategy.initIntervals();
         assertEquals(SequenceRetryStrategy.CODE, strategy.getCode());
         assertEquals(3 * ONE_MINUTE_MILLIS, strategy.nextIntervalMillis(1));
         assertEquals(5 * ONE_MINUTE_MILLIS, strategy.nextIntervalMillis(2));

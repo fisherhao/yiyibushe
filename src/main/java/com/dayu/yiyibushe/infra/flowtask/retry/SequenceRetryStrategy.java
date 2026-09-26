@@ -1,6 +1,8 @@
 package com.dayu.yiyibushe.infra.flowtask.retry;
 
 import com.dayu.yiyibushe.common.util.StringUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -30,18 +32,20 @@ public class SequenceRetryStrategy implements RetryStrategy {
     /** 一分钟对应的毫秒数 */
     private static final long MILLIS_PER_MINUTE = 60_000L;
 
+    /**
+     * 逗号分隔的分钟序列
+     */
+    @Value("${flowtask.retry.sequence-minutes:" + DEFAULT_MINUTES + "}")
+    private String minutesConfig;
+
     /** 有序间隔列表（毫秒） */
-    private final List<Long> intervalMillisList;
+    private List<Long> intervalMillisList;
 
     /**
-     * 构造器
-     *
-     * @param minutesConfig
-     *     逗号分隔的分钟序列，来自配置 flowtask.retry.sequence-minutes
+     * 启动时解析分钟序列为毫秒间隔列表
      */
-    public SequenceRetryStrategy(
-            @Value("${flowtask.retry.sequence-minutes:" + DEFAULT_MINUTES + "}")
-            String minutesConfig) {
+    @PostConstruct
+    public void initIntervals() {
         this.intervalMillisList = parseMinutes(minutesConfig);
     }
 
@@ -68,8 +72,8 @@ public class SequenceRetryStrategy implements RetryStrategy {
         if (index < 0) {
             index = 0;
         }
-        if (index >= intervalMillisList.size()) {
-            index = intervalMillisList.size() - 1;
+        if (index >= CollectionUtilExt.getSize(intervalMillisList)) {
+            index = CollectionUtilExt.getSize(intervalMillisList) - 1;
         }
         return intervalMillisList.get(index);
     }
@@ -85,9 +89,9 @@ public class SequenceRetryStrategy implements RetryStrategy {
     private static List<Long> parseMinutes(String minutesConfig) {
         List<Long> intervals = new ArrayList<>();
         if (StringUtilExt.isNotBlank(minutesConfig)) {
-            String[] tokens = minutesConfig.split(",");
+            String[] tokens = StringUtilExt.split(minutesConfig, ",");
             for (String token : tokens) {
-                String trimmed = token.trim();
+                String trimmed = StringUtilExt.trim(token);
                 if (StringUtilExt.isBlank(trimmed)) {
                     continue;
                 }
@@ -97,7 +101,7 @@ public class SequenceRetryStrategy implements RetryStrategy {
                 }
             }
         }
-        if (intervals.isEmpty()) {
+        if (CollectionUtilExt.isEmpty(intervals)) {
             return parseMinutes(DEFAULT_MINUTES);
         }
         return List.copyOf(intervals);

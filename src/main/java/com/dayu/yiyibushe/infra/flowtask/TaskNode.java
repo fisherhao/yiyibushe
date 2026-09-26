@@ -1,5 +1,7 @@
 package com.dayu.yiyibushe.infra.flowtask;
 
+import com.dayu.yiyibushe.common.util.StringUtilExt;
+
 import java.util.Map;
 import java.util.Objects;
 
@@ -277,6 +279,6 @@ public class TaskNode {
      * @return true 表示是同一节点
      */
     public boolean matchesNode(String targetNodeType) {
-        return Objects.nonNull(targetNodeType) && targetNodeType.equals(nodeType);
+        return StringUtilExt.equals(targetNodeType, nodeType);
     }
 }

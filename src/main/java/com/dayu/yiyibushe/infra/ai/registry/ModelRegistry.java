@@ -4,8 +4,10 @@ import com.dayu.yiyibushe.common.exception.BizErrorCode;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.dao.mapper.ModelMapper;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
 import com.dayu.yiyibushe.infra.ai.core.ModelType;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -39,18 +41,6 @@ public class ModelRegistry {
 
     private static final Logger log = LogUtilExt.getLogger(ModelRegistry.class);
 
-    /** 发布状态：已发布 */
-    private static final String PUBLISH_STATUS_PUBLISHED = "PUBLISHED";
-
-    /** 运行状态：可用 */
-    private static final String RUNTIME_STATUS_ACTIVE = "ACTIVE";
-
-    /** 可见范围：公开 */
-    private static final String VISIBILITY_PUBLIC = "PUBLIC";
-
-    /** 来源：内置默认（本地文件基线） */
-    private static final String SOURCE_TYPE_LOCAL_FILE = "LOCAL_FILE";
-
     /** 文本模态 JSON */
     private static final String MODALITY_TEXT = "[\"text\"]";
 
@@ -70,35 +60,42 @@ public class ModelRegistry {
 
     static {
         // ===== DashScope 原生：万相图片系列（异步） =====
-        putDefault(buildImageModel("dashscope-wanx-t2i", "DashScope 万相文生图", "dashscope",
+        putDefault(buildImageModel("dashscope-wanx-t2i", "DashScope 万相文生图",
+                ProviderInfo.DASHSCOPE.getCode(),
                 ModelType.IMAGE_GENERATION, "wanx2.1-t2i-turbo", MODALITY_TEXT, MODALITY_IMAGE));
-        putDefault(buildImageModel("dashscope-virtualtryon", "DashScope 虚拟试衣", "dashscope",
+        putDefault(buildImageModel("dashscope-virtualtryon", "DashScope 虚拟试衣",
+                ProviderInfo.DASHSCOPE.getCode(),
                 ModelType.IMAGE_EDITING, "wanx-virtualtryon", MODALITY_TEXT_IMAGE, MODALITY_IMAGE));
 
         // ===== OpenAI =====
-        putDefault(buildChatModel("openai-gpt4o", "OpenAI GPT-4o", "openai", "gpt-4o"));
-        putDefault(buildChatModel("openai-gpt4o-mini", "OpenAI GPT-4o mini", "openai", "gpt-4o-mini"));
+        putDefault(buildChatModel("openai-gpt4o", "OpenAI GPT-4o",
+                ProviderInfo.OPENAI.getCode(), "gpt-4o"));
+        putDefault(buildChatModel("openai-gpt4o-mini", "OpenAI GPT-4o mini",
+                ProviderInfo.OPENAI.getCode(), "gpt-4o-mini"));
 
         // ===== DeepSeek（OpenAI 兼容） =====
-        putDefault(buildChatModel("deepseek-chat", "DeepSeek Chat", "deepseek", "deepseek-chat"));
+        putDefault(buildChatModel("deepseek-chat", "DeepSeek Chat",
+                ProviderInfo.DEEPSEEK.getCode(), "deepseek-chat"));
 
         // ===== Anthropic Claude =====
         putDefault(buildChatModel("claude-3-5-sonnet", "Claude 3.5 Sonnet",
-                "claude", "claude-3-5-sonnet-20241022"));
+                ProviderInfo.CLAUDE.getCode(), "claude-3-5-sonnet-20241022"));
 
         // ===== Google Gemini =====
         putDefault(buildChatModel("gemini-2.0-flash", "Gemini 2.0 Flash",
-                "gemini", "gemini-2.0-flash"));
+                ProviderInfo.GEMINI.getCode(), "gemini-2.0-flash"));
 
         // ===== 通义千问（OpenAI 兼容模式） =====
-        putDefault(buildChatModel("qwen-flash", "通义千问 Qwen Flash", "qwen", "qwen-flash"));
+        putDefault(buildChatModel("qwen-flash", "通义千问 Qwen Flash",
+                ProviderInfo.QWEN.getCode(), "qwen-flash"));
 
         // ===== 字节豆包（火山引擎，OpenAI 兼容） =====
-        putDefault(buildChatModel("doubao-pro-32k", "豆包 Pro 32K", "doubao", "doubao-pro-32k"));
+        putDefault(buildChatModel("doubao-pro-32k", "豆包 Pro 32K",
+                ProviderInfo.DOUBAO.getCode(), "doubao-pro-32k"));
 
         // ===== Moonshot Kimi =====
         putDefault(buildChatModel("moonshot-v1-8k", "Kimi Moonshot v1 8K",
-                "moonshot", "moonshot-v1-8k"));
+                ProviderInfo.MOONSHOT.getCode(), "moonshot-v1-8k"));
     }
 
     /** 运行时模型缓存：code -> definition（数据库模型 + 动态注册） */
@@ -133,7 +130,7 @@ public class ModelRegistry {
                 runtimeModels.put(dbModel.getCode(), dbModel);
             }
             LogUtilExt.info(log, "[ModelRegistry] 已从数据库加载 {0} 个模型（种子默认 {1} 个，仅供入库）",
-                    runtimeModels.size(), DEFAULT_MODELS.size());
+                    CollectionUtilExt.getSize(runtimeModels), CollectionUtilExt.getSize(DEFAULT_MODELS));
         } catch (Exception e) {
             LogUtilExt.error(log, "[ModelRegistry] 数据库模型加载失败: {0}", e.getMessage(), e);
         }
@@ -211,12 +208,12 @@ public class ModelRegistry {
      * @param definition 模型定义
      */
     private static void fillGovernanceFields(ModelDefinition definition) {
-        definition.setPublishStatus(PUBLISH_STATUS_PUBLISHED);
-        definition.setRuntimeStatus(RUNTIME_STATUS_ACTIVE);
-        definition.setVisibility(VISIBILITY_PUBLIC);
-        definition.setSourceType(SOURCE_TYPE_LOCAL_FILE);
+        definition.setPublishStatus(AiConstants.PUBLISH_STATUS_PUBLISHED);
+        definition.setRuntimeStatus(AiConstants.RUNTIME_STATUS_ACTIVE);
+        definition.setVisibility(AiConstants.VISIBILITY_PUBLIC);
+        definition.setSourceType(AiConstants.SOURCE_TYPE_LOCAL_FILE);
         definition.setSourceRef(LOCAL_SOURCE_REF);
-        definition.setVersion(1);
+        definition.setVersion(AiConstants.INITIAL_VERSION);
     }
 
     /**
@@ -235,12 +232,15 @@ public class ModelRegistry {
                                                     ModelType modelType, String modelName,
                                                     String inputModalities, String outputModalities) {
         ProviderInfo info = ProviderInfo.fromCode(provider);
+        if (Objects.isNull(info)) {
+            throw new BizException(BizErrorCode.PROVIDER_UNKNOWN);
+        }
         ModelDefinition definition = new ModelDefinition();
         definition.setCode(code);
         definition.setDisplayName(displayName);
         definition.setProvider(provider);
         definition.setModelType(modelType);
-        definition.setProtocol(Objects.requireNonNull(info).getProtocol().name());
+        definition.setProtocol(info.getProtocol().name());
         definition.setBaseUrl(info.getBaseUrl());
         definition.setChatPath(info.getChatPath());
         definition.setModelName(modelName);
@@ -263,12 +263,15 @@ public class ModelRegistry {
     private static ModelDefinition buildChatModel(String code, String displayName,
                                                    String provider, String modelName) {
         ProviderInfo info = ProviderInfo.fromCode(provider);
+        if (Objects.isNull(info)) {
+            throw new BizException(BizErrorCode.PROVIDER_UNKNOWN);
+        }
         ModelDefinition definition = new ModelDefinition();
         definition.setCode(code);
         definition.setDisplayName(displayName);
         definition.setProvider(provider);
         definition.setModelType(ModelType.TEXT_CHAT);
-        definition.setProtocol(Objects.requireNonNull(info).getProtocol().name());
+        definition.setProtocol(info.getProtocol().name());
         definition.setBaseUrl(info.getBaseUrl());
         definition.setChatPath(info.getChatPath());
         definition.setModelName(modelName);

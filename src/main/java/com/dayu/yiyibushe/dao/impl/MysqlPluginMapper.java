@@ -3,6 +3,7 @@ package com.dayu.yiyibushe.dao.impl;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.id.IdUtil;
+import com.dayu.yiyibushe.common.util.CollectionUtilExt;
 import com.dayu.yiyibushe.dao.mapper.PluginMapper;
 import com.dayu.yiyibushe.dao.mybatis.PluginMybatisMapper;
 import com.dayu.yiyibushe.dao.po.PluginPO;
@@ -41,8 +42,7 @@ public class MysqlPluginMapper implements PluginMapper {
 
     @Override
     public List<PluginDefinition> selectAll() {
-        return pluginMybatisMapper.selectAll()
-                .stream()
+        return CollectionUtilExt.toStream(pluginMybatisMapper.selectAll())
                 .map(this::toDefinition)
                 .toList();
     }

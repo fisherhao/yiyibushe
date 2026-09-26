@@ -8,19 +8,23 @@ import com.dayu.yiyibushe.dao.mapper.FunctionMapper;
 import com.dayu.yiyibushe.dao.mapper.ModelMapper;
 import com.dayu.yiyibushe.dao.mapper.PluginInstallMapper;
 import com.dayu.yiyibushe.dao.mapper.PluginMapper;
+import com.dayu.yiyibushe.dao.mapper.PromptMapper;
 import com.dayu.yiyibushe.dao.mapper.SkillMapper;
 import com.dayu.yiyibushe.dao.mapper.ToolMapper;
 import com.dayu.yiyibushe.dao.mybatis.CredentialMybatisMapper;
 import com.dayu.yiyibushe.dao.po.CredentialPO;
 import com.dayu.yiyibushe.dao.po.PluginInstallPO;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
 import com.dayu.yiyibushe.infra.ai.credential.ApiCredential;
 import com.dayu.yiyibushe.infra.ai.credential.LocalCredentialMigrationSource;
 import com.dayu.yiyibushe.infra.ai.definition.FunctionDefinition;
 import com.dayu.yiyibushe.infra.ai.definition.PluginDefinition;
+import com.dayu.yiyibushe.infra.ai.definition.PromptDefinition;
 import com.dayu.yiyibushe.infra.ai.definition.SkillDefinition;
 import com.dayu.yiyibushe.infra.ai.definition.ToolDefinition;
 import com.dayu.yiyibushe.infra.ai.registry.ModelDefinition;
 import com.dayu.yiyibushe.infra.ai.registry.ModelRegistry;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocument;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocumentLoader;
 import io.agentscope.core.tool.AgentTool;
@@ -57,36 +61,6 @@ public class AiAssetDataSeeder implements ApplicationRunner {
 
     private static final Logger log = LogUtilExt.getLogger(AiAssetDataSeeder.class);
 
-    /** 凭证启用状态 */
-    private static final String STATUS_ENABLED = "ENABLED";
-
-    /** 函数启用状态 */
-    private static final String FUNCTION_STATUS_ENABLED = "ENABLED";
-
-    /** 发布状态：已发布 */
-    private static final String PUBLISH_STATUS_PUBLISHED = "PUBLISHED";
-
-    /** 运行状态：可用 */
-    private static final String RUNTIME_STATUS_ACTIVE = "ACTIVE";
-
-    /** 可见范围：公开 */
-    private static final String VISIBILITY_PUBLIC = "PUBLIC";
-
-    /** 来源：本地文件 */
-    private static final String SOURCE_TYPE_LOCAL_FILE = "LOCAL_FILE";
-
-    /** NATIVE 执行器类型 */
-    private static final String EXECUTOR_TYPE_NATIVE = "NATIVE";
-
-    /** 工作空间范围 */
-    private static final String SCOPE_TYPE_WORKSPACE = "WORKSPACE";
-
-    /** 安装状态：已安装 */
-    private static final String INSTALL_STATUS_INSTALLED = "INSTALLED";
-
-    /** 默认工作空间业务ID（种子常量） */
-    private static final long DEFAULT_WORKSPACE_ID = 1L;
-
     /** 迁入凭证备注 */
     private static final String CREDENTIAL_REMARK_MIGRATED = "启动时从环境变量/本地配置迁入";
 
@@ -112,6 +86,12 @@ public class AiAssetDataSeeder implements ApplicationRunner {
     private PluginInstallMapper pluginInstallMapper;
 
     @Autowired
+    private PromptMapper promptMapper;
+
+    @Autowired
+    private PromptStore promptStore;
+
+    @Autowired
     private CredentialMybatisMapper credentialMybatisMapper;
 
     @Autowired
@@ -132,6 +112,7 @@ public class AiAssetDataSeeder implements ApplicationRunner {
         seedTools();
         seedSkills();
         seedPluginsAndInstalls();
+        seedPrompts();
     }
 
     /**
@@ -153,7 +134,7 @@ public class AiAssetDataSeeder implements ApplicationRunner {
                 credentialPO.setProvider(provider);
                 credentialPO.setAppKey(credential.getAppKey());
                 credentialPO.setAppSecret(credential.getAppSecret());
-                credentialPO.setStatus(STATUS_ENABLED);
+                credentialPO.setStatus(AiConstants.STATUS_ENABLED);
                 credentialPO.setRemark(CREDENTIAL_REMARK_MIGRATED);
                 credentialMybatisMapper.insert(credentialPO);
                 migratedCount++;
@@ -201,9 +182,9 @@ public class AiAssetDataSeeder implements ApplicationRunner {
                 definition.setFunctionCode(spec.functionCode());
                 definition.setFunctionName(spec.functionName());
                 definition.setDescription(spec.description());
-                definition.setExecutorType(EXECUTOR_TYPE_NATIVE);
+                definition.setExecutorType(AiConstants.EXECUTOR_TYPE_NATIVE);
                 definition.setExecutorConfig(buildNativeExecutorConfig(spec.beanName()));
-                definition.setStatus(FUNCTION_STATUS_ENABLED);
+                definition.setStatus(AiConstants.STATUS_ENABLED);
                 functionMapper.insert(definition);
                 migratedCount++;
             } catch (Exception e) {
@@ -244,8 +225,8 @@ public class AiAssetDataSeeder implements ApplicationRunner {
                 definition.setTimeoutSeconds(spec.timeoutSeconds());
                 definition.setRetryCount(1);
                 definition.setCacheTtlSeconds(spec.cacheTtlSeconds());
-                definition.setPublishStatus(PUBLISH_STATUS_PUBLISHED);
-                definition.setRuntimeStatus(RUNTIME_STATUS_ACTIVE);
+                definition.setPublishStatus(AiConstants.PUBLISH_STATUS_PUBLISHED);
+                definition.setRuntimeStatus(AiConstants.RUNTIME_STATUS_ACTIVE);
                 toolMapper.insert(definition);
                 migratedCount++;
             } catch (Exception e) {
@@ -280,8 +261,8 @@ public class AiAssetDataSeeder implements ApplicationRunner {
                 definition.setCompatibility(spec.compatibility());
                 definition.setMetadataJson(spec.metadataJson());
                 definition.setSortNo(spec.sortNo());
-                definition.setPublishStatus(PUBLISH_STATUS_PUBLISHED);
-                definition.setRuntimeStatus(RUNTIME_STATUS_ACTIVE);
+                definition.setPublishStatus(AiConstants.PUBLISH_STATUS_PUBLISHED);
+                definition.setRuntimeStatus(AiConstants.RUNTIME_STATUS_ACTIVE);
                 skillMapper.insert(definition);
                 migratedCount++;
             } catch (Exception e) {
@@ -319,21 +300,21 @@ public class AiAssetDataSeeder implements ApplicationRunner {
                 pluginDefinition.setVersion(spec.version());
                 pluginDefinition.setAuthor("fisherhao");
                 pluginDefinition.setOwner("fisherhao");
-                pluginDefinition.setVisibility(VISIBILITY_PUBLIC);
-                pluginDefinition.setSourceType(SOURCE_TYPE_LOCAL_FILE);
+                pluginDefinition.setVisibility(AiConstants.VISIBILITY_PUBLIC);
+                pluginDefinition.setSourceType(AiConstants.SOURCE_TYPE_LOCAL_FILE);
                 pluginDefinition.setSourceRef(spec.sourceRef());
                 pluginDefinition.setCategory(spec.category());
                 pluginDefinition.setItems(buildPluginItemsJson(spec.skillCode()));
                 pluginDefinition.setPermissionConfig(spec.permissionConfig());
                 pluginDefinition.setCredentialRequired(false);
-                pluginDefinition.setPublishStatus(PUBLISH_STATUS_PUBLISHED);
-                pluginDefinition.setRuntimeStatus(RUNTIME_STATUS_ACTIVE);
+                pluginDefinition.setPublishStatus(AiConstants.PUBLISH_STATUS_PUBLISHED);
+                pluginDefinition.setRuntimeStatus(AiConstants.RUNTIME_STATUS_ACTIVE);
                 pluginMapper.insert(pluginDefinition);
                 LogUtilExt.info(log, "[AiSeed] 插件迁入完成: {0}", spec.pluginCode());
             }
 
             List<PluginInstallPO> scopeInstalls = pluginInstallMapper
-                    .selectByScope(SCOPE_TYPE_WORKSPACE, DEFAULT_WORKSPACE_ID);
+                    .selectByScope(AiConstants.SCOPE_TYPE_WORKSPACE, AiConstants.DEFAULT_WORKSPACE_ID);
             PluginInstallPO matchedInstall = CollectionUtilExt.findFirst(scopeInstalls,
                     install -> Objects.equals(install.getPluginId(), pluginDefinition.getPluginId()));
             if (Objects.nonNull(matchedInstall)) {
@@ -343,9 +324,9 @@ public class AiAssetDataSeeder implements ApplicationRunner {
             installPO.setPluginId(pluginDefinition.getPluginId());
             installPO.setPluginCode(pluginDefinition.getPluginCode());
             installPO.setVersion(pluginDefinition.getVersion());
-            installPO.setScopeType(SCOPE_TYPE_WORKSPACE);
-            installPO.setScopeId(DEFAULT_WORKSPACE_ID);
-            installPO.setInstallStatus(INSTALL_STATUS_INSTALLED);
+            installPO.setScopeType(AiConstants.SCOPE_TYPE_WORKSPACE);
+            installPO.setScopeId(AiConstants.DEFAULT_WORKSPACE_ID);
+            installPO.setInstallStatus(AiConstants.INSTALL_STATUS_INSTALLED);
             pluginInstallMapper.insert(installPO);
         } catch (Exception e) {
             LogUtilExt.error(log, "[AiSeed] 插件迁入失败 plugin={0}, {1}",
@@ -400,7 +381,7 @@ public class AiAssetDataSeeder implements ApplicationRunner {
         List<Map<String, Object>> items = new ArrayList<>();
         if (Objects.nonNull(skillDefinition)) {
             Map<String, Object> item = new LinkedHashMap<>();
-            item.put("itemType", "SKILL");
+            item.put("itemType", AiConstants.ITEM_TYPE_SKILL);
             item.put("itemId", skillDefinition.getSkillId());
             item.put("itemCode", skillCode);
             item.put("required", true);
@@ -437,7 +418,8 @@ public class AiAssetDataSeeder implements ApplicationRunner {
         permissionMap.put("dangerousOperations", false);
         return new PluginSeedSpec("weather-plugin", "天气查询插件",
                 "查询指定城市或当前位置的实时天气", "1.0.0",
-                "skills/current-weather/SKILL.md", "weather", "current-weather",
+                AiConstants.SKILL_CLASSPATH_DIRECTORY + "/current-weather/" + AiConstants.SKILL_FILE_NAME,
+                "weather", "current-weather",
                 JsonUtilExt.toJsonString(permissionMap));
     }
 
@@ -453,7 +435,8 @@ public class AiAssetDataSeeder implements ApplicationRunner {
         permissionMap.put("dangerousOperations", false);
         return new PluginSeedSpec("tech-news-plugin", "科技新闻插件",
                 "获取并整理今日科技新闻速递", "1.0.0",
-                "skills/daily-tech-news/SKILL.md", "news", "daily-tech-news",
+                AiConstants.SKILL_CLASSPATH_DIRECTORY + "/daily-tech-news/" + AiConstants.SKILL_FILE_NAME,
+                "news", "daily-tech-news",
                 JsonUtilExt.toJsonString(permissionMap));
     }
 
@@ -508,6 +491,112 @@ public class AiAssetDataSeeder implements ApplicationRunner {
         metadataMap.put("version", "1.0");
         metadataMap.put("standard", "agentskills.io");
         return JsonUtilExt.toJsonString(metadataMap);
+    }
+
+    /**
+     * 灌入内置提示词基线（按 prompt_code 判重，已存在跳过），完成后全量重载缓存。
+     */
+    private void seedPrompts() {
+        int insertedCount = 0;
+        for (PromptDefinition promptDefinition : buildBaselinePrompts()) {
+            try {
+                if (Objects.nonNull(promptMapper.selectByPromptCode(promptDefinition.getPromptCode()))) {
+                    continue;
+                }
+                promptMapper.insert(promptDefinition);
+                insertedCount++;
+            } catch (Exception e) {
+                LogUtilExt.error(log, "[Seeder] 提示词 {0} 灌入失败: {1}",
+                        promptDefinition.getPromptCode(), e.getMessage(), e);
+            }
+        }
+        promptStore.reload();
+        LogUtilExt.info(log, "[Seeder] 提示词种子完成，新增 {0} 条", insertedCount);
+    }
+
+    /**
+     * 构建内置提示词基线：原散落在各 Agent/Tool/Loader 中的提示词与固定文案全部收口于此。
+     *
+     * @return 提示词定义列表
+     */
+    private List<PromptDefinition> buildBaselinePrompts() {
+        List<PromptDefinition> baselineList = new ArrayList<>();
+        baselineList.add(definePrompt(AiConstants.PROMPT_ASSISTANT_SYSTEM, "统一对话助手系统提示",
+                AiConstants.PROMPT_CATEGORY_SYSTEM,
+                "你是一个中文助手。你的能力严格限定在以下两个范畴，多一步都不要做：\n"
+                        + "范畴一：天气查询（当前位置或指定城市的天气、气温、湿度、会不会下雨等）。\n"
+                        + "范畴二：科技新闻速递（今日科技新闻、科技圈动态、科技界最新消息）。\n"
+                        + "执行规则（严格遵守）：\n"
+                        + "1. 先对照下方技能目录，判断用户请求命中哪个技能；\n"
+                        + "2. 命中后必须先调用 load-skill-instructions 工具（入参 skillName 为目录中的技能名）"
+                        + "加载该技能的完整执行指令，再按指令调用其业务工具；未加载指令前不得直接调用业务工具；\n"
+                        + "3. 用户一句话同时命中两个技能时，两个技能的指令分别加载、业务工具全部调用，"
+                        + "再把两部分结果合并到一条回复中，不能只答一半；\n"
+                        + "4. 请求与天气、科技新闻都无关（例如讲笑话、问时间、闲聊、编程问题等）时，"
+                        + "不要调用任何工具；\n"
+                        + "5. 禁止编造工具返回中没有的事实。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_SKILL_METADATA_HEADER, "技能目录头部",
+                AiConstants.PROMPT_CATEGORY_SYSTEM,
+                "以下是可用的技能，用户请求与描述匹配时按技能指令执行：\n"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_PLAN_SYSTEM, "规划 Agent 系统提示",
+                AiConstants.PROMPT_CATEGORY_SYSTEM,
+                "你是专业穿搭规划师。根据用户描述的风格、场景和效果，"
+                        + "结合用户上传的人物图与衣物，输出一份简洁的搭配方案：包含选用哪些衣物、搭配顺序与预期效果。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_EXECUTE_SYSTEM, "执行 Agent 系统提示",
+                AiConstants.PROMPT_CATEGORY_SYSTEM,
+                "你是穿搭执行师。请把规划方案转成一份可直接执行的穿衣合成说明，"
+                        + "明确每一步使用的衣物类型与画面要求，语言简洁。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_REVIEW_SYSTEM, "评审 Agent 系统提示",
+                AiConstants.PROMPT_CATEGORY_SYSTEM,
+                "你是穿搭评审师。请检查执行说明是否符合用户的风格与场景要求，"
+                        + "给出最终优化后的可交付版本。直接输出最终内容，不要多余解释。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_PLAN_USER_TEMPLATE, "规划用户消息模板",
+                AiConstants.PROMPT_CATEGORY_USER_TEMPLATE, "用户需求：{0}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_EXECUTE_USER_TEMPLATE, "执行用户消息模板",
+                AiConstants.PROMPT_CATEGORY_USER_TEMPLATE, "规划方案：\n{0}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_REVIEW_USER_TEMPLATE, "评审用户消息模板",
+                AiConstants.PROMPT_CATEGORY_USER_TEMPLATE, "执行内容：\n{0}"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_DEFAULT_REQUIREMENT, "需求缺省值",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY, "生成一套日常穿搭"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_IMAGE_PERSON_DEFAULT, "人物图默认生成提示",
+                AiConstants.PROMPT_CATEGORY_IMAGE,
+                "一位穿着时尚的年轻人，全身照，真实摄影风格"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_IMAGE_PERSON_SUFFIX, "人物图提示风格后缀",
+                AiConstants.PROMPT_CATEGORY_IMAGE, "，人物全身照，真实摄影风格"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_OUT_OF_SCOPE_REPLY, "超出范畴兜底话术",
+                AiConstants.PROMPT_CATEGORY_FIXED_REPLY,
+                "你问的问题超出范畴，我无法对你回答。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOAD_SKILL_TOOL_DESC, "技能加载工具描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "按技能名加载该技能 SKILL.md 的完整执行指令（正文）。"
+                        + "当你根据技能目录判断用户请求命中某个技能后，必须先调用本工具（入参 skillName "
+                        + "为技能目录中的名称），读到指令后再调用该技能的业务工具。无外网请求，直接从内存读取。"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOAD_SKILL_ARG_DESC, "技能加载工具入参描述",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "技能名（技能目录中列出的 name），如 current-weather"));
+        baselineList.add(definePrompt(AiConstants.PROMPT_LOAD_SKILL_MISSING_ARG, "技能加载工具缺参错误",
+                AiConstants.PROMPT_CATEGORY_TOOL_DESC,
+                "load-skill-instructions 缺少必填参数 skillName"));
+        return baselineList;
+    }
+
+    /**
+     * 组装一条提示词定义
+     *
+     * @param promptCode 提示词编码
+     * @param promptName 展示名称
+     * @param category   分类
+     * @param content    提示词内容
+     * @return 提示词定义
+     */
+    private static PromptDefinition definePrompt(String promptCode, String promptName,
+                                                 String category, String content) {
+        PromptDefinition promptDefinition = new PromptDefinition();
+        promptDefinition.setPromptCode(promptCode);
+        promptDefinition.setPromptName(promptName);
+        promptDefinition.setCategory(category);
+        promptDefinition.setContent(content);
+        return promptDefinition;
     }
 
     /**

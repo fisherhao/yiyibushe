@@ -6,6 +6,8 @@ import com.dayu.yiyibushe.infra.flowtask.TaskNodeResult;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
 import org.slf4j.Logger;
 
+import java.util.Optional;
+
 /**
  * 说明：演示节点 failOnce——首次执行模拟失败，重试后成功，
  * 用来演示「failOnce 失败 -> 任务回 INIT -> 下一次从 failOnce 继续执行」的断点重试机制。
@@ -50,7 +52,7 @@ public class FailOnceNode implements TaskNodeAction {
     @Override
     public TaskNodeResult execute(TaskContext context) {
         Integer executeCount = context.getInteger(KEY_EXECUTE_COUNT);
-        int nextCount = (executeCount == null ? 0 : executeCount) + 1;
+        int nextCount = Optional.ofNullable(executeCount).orElse(0) + 1;
         context.put(KEY_EXECUTE_COUNT, nextCount);
         if (nextCount == 1) {
             LogUtilExt.warn(log, "[FlowTask-演示] failOnce 首次执行失败（模拟）");

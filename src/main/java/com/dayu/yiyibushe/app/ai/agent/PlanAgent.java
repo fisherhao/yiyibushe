@@ -3,23 +3,27 @@ package com.dayu.yiyibushe.app.ai.agent;
 import com.dayu.yiyibushe.domain.ai.execution.ExecutionContext;
 import com.dayu.yiyibushe.domain.ai.execution.ExecutionResult;
 import com.dayu.yiyibushe.infra.ai.agent.BaseAiAgent;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
+import com.dayu.yiyibushe.common.util.StringUtilExt;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 规划 Agent：分析用户需求，输出可执行的穿衣搭配方案与步骤。
+ * <p>
+ * 系统提示与用户消息模板均从提示词库读取，改库即生效。
  *
  * @author Witty·Kid Fisher
- * @version 0.0.3
+ * @version 0.0.4
  */
 @Component
 public class PlanAgent extends BaseAiAgent {
 
-    /** 规划角色提示词 */
-    private static final String SYSTEM_PROMPT = "你是专业穿搭规划师。根据用户描述的风格、场景和效果，"
-            + "结合用户上传的人物图与衣物，输出一份简洁的搭配方案：包含选用哪些衣物、搭配顺序与预期效果。";
+    @Autowired
+    private PromptStore promptStore;
 
     {
         name = "plan-agent";
@@ -33,7 +37,7 @@ public class PlanAgent extends BaseAiAgent {
      */
     @Override
     protected String buildSystemPrompt() {
-        return SYSTEM_PROMPT;
+        return promptStore.require(AiConstants.PROMPT_PLAN_SYSTEM);
     }
 
     /**
@@ -47,8 +51,9 @@ public class PlanAgent extends BaseAiAgent {
      */
     @Override
     public ExecutionResult execute(ExecutionContext context, Map<String, ExecutionResult> inputs) {
-        String requirement = Objects.requireNonNullElse((String) context.get("requirement"), "生成一套日常穿搭");
-        String plan = callModel("用户需求：" + requirement);
+        String requirement = StringUtilExt.defaultIfBlank((String) context.get("requirement"),
+                promptStore.require(AiConstants.PROMPT_DEFAULT_REQUIREMENT));
+        String plan = callModel(promptStore.format(AiConstants.PROMPT_PLAN_USER_TEMPLATE, requirement));
         context.put("plan", plan);
         return ExecutionResult.success(plan);
     }

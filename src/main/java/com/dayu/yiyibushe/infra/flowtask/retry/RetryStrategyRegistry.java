@@ -5,7 +5,9 @@ import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.SystemErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -32,19 +34,26 @@ public class RetryStrategyRegistry {
     /** 策略 code -> 策略实现 */
     private final Map<String, RetryStrategy> strategyMap = new ConcurrentHashMap<>();
 
-    /** 全局默认策略 */
-    private final RetryStrategy defaultStrategy;
+    /**
+     * 容器中全部重试策略 Bean
+     */
+    @Autowired
+    private List<RetryStrategy> strategies;
 
     /**
-     * 构造器：自动收集全部重试策略并校验默认策略存在
-     *
-     * @param strategies
-     *     容器中所有重试策略 Bean
-     * @param defaultCode
-     *     全局默认策略 code，来自配置 flowtask.retry.default-strategy
+     * 全局默认策略 code
      */
-    public RetryStrategyRegistry(List<RetryStrategy> strategies,
-            @Value("${flowtask.retry.default-strategy:FIXED}") String defaultCode) {
+    @Value("${flowtask.retry.default-strategy:FIXED}")
+    private String defaultCode;
+
+    /** 全局默认策略 */
+    private RetryStrategy defaultStrategy;
+
+    /**
+     * 注册全部重试策略并校验默认策略存在
+     */
+    @PostConstruct
+    public void registerStrategies() {
         for (RetryStrategy strategy : strategies) {
             if (Objects.isNull(strategy) || StringUtilExt.isBlank(strategy.getCode())) {
                 // 策略 code 是框架契约，为空只可能是实现错误，跳过并提示

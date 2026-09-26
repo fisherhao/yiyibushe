@@ -5,6 +5,7 @@ import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.infra.ai.credential.CredentialManager;
 import com.dayu.yiyibushe.infra.ai.registry.ModelDefinition;
+import com.dayu.yiyibushe.infra.ai.registry.ProviderInfo;
 import io.agentscope.core.model.Model;
 import io.agentscope.extensions.model.dashscope.DashScopeChatModel;
 import io.agentscope.extensions.model.openai.OpenAIChatModel;
@@ -31,12 +32,6 @@ import java.util.Objects;
  */
 @Component
 public class AgentScopeModelFactory {
-
-    /** DashScope 原生协议标识 */
-    private static final String PROTOCOL_DASHSCOPE_NATIVE = "DASHSCOPE_NATIVE";
-
-    /** DashScope 厂商兜底标识（protocol 缺失时按厂商降级判断） */
-    private static final String PROVIDER_DASHSCOPE = "dashscope";
 
     @Autowired
     private CredentialManager credentialManager;
@@ -66,9 +61,10 @@ public class AgentScopeModelFactory {
      */
     private boolean isDashScopeNative(ModelDefinition definition) {
         if (StringUtilExt.isNotBlank(definition.getProtocol())) {
-            return StringUtilExt.equals(PROTOCOL_DASHSCOPE_NATIVE, definition.getProtocol());
+            return StringUtilExt.equals(ProviderInfo.Protocol.DASHSCOPE_NATIVE.name(),
+                    definition.getProtocol());
         }
-        return StringUtilExt.equals(PROVIDER_DASHSCOPE, definition.getProvider());
+        return StringUtilExt.equals(ProviderInfo.DASHSCOPE.getCode(), definition.getProvider());
     }
 
     /**

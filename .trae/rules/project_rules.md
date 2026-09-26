@@ -95,11 +95,27 @@ public void setFunctionCode(String functionCode) {
    - 字符串：`StringUtilExt.isBlank()` / `isNotBlank()`；
    - 集合：`CollectionUtilExt.isEmpty()` / `isNotEmpty()`；
    - 需要 Stream 时用 `CollectionUtilExt.toStream()`，禁止业务代码无封装直接 `.stream()`。
+   - 取集合/Map 大小统一 `CollectionUtilExt.getSize()`（null 安全），禁止业务代码直接 `.size()`；record/PO 的业务字段取值方法（如 `uploaded.size()` 表文件字节数）不在此列。
+   - 字符串的比较、前后缀、包含、大小写、截取、拆分、trim、length 统一走 `StringUtilExt`（null 安全），禁止业务代码直接调 String 的 `equals/startsWith/endsWith/contains/toUpperCase/toLowerCase/substring/split/trim/length`；即使前缀是字面量（如 `"success".equals(x)`）也统一为 `StringUtilExt` 写法。本地 `new String(...)` 构造后立即调用、常量/枚举上的无 NPE 风险调用（如 `indexOf`、常量 `.length()`）可保留。
 4. Service 必须接口与实现分离：`XxxService` + `impl.XxxServiceImpl`。
 5. `common` 包是纯静态、无状态、无业务的工具模块，不放 Spring 组件。
 6. 自建工具类放 `common/util`，类名以 `UtilExt` 结尾：`StringUtilExt`、`CollectionUtilExt`、`JsonUtilExt`、`LogUtilExt`。
 7. 同步阻塞代码进入 Reactor 链路时，用 `Mono.fromCallable(...).subscribeOn(Schedulers.boundedElastic())` 或 WebClient；禁止用 `Mono.just()` 包裹阻塞调用。
-8. 动态 Schema/参数容器用 `LinkedHashMap`，禁止 `Map.of()`（不可变且不允许 null）。
+8. 动态 Schema/参数/结果容器用 `LinkedHashMap`，禁止 `Map.of()`（不可变且不允许 null）；仅固定 key 且 value 全部为编译期非空常量的静态 Map（如固定响应、静态常量 Schema）可用 `Map.of`。
+9. 空安全与判空的统一写法（全项目无死角执行）：
+   - 对象判空只用 JDK `Objects.isNull/nonNull`；三元"为 null 取默认值"用 `Optional.ofNullable(x).orElse(默认值)`（延迟计算默认值用 `orElseGet`），禁止裸 `== null` / `!= null`；
+   - **禁止 `Objects.requireNonNull` / `requireNonNullElse` / `requireNonNullElseGet`**：即使预期内也会抛裸 `NullPointerException`，被日志按 NPE 告警；入参不合法一律抛 `BizException`（参数类用 `ParamErrorCode`），默认值一律走 `Optional`；
+   - 集合/Map 判空只用 `CollectionUtilExt.isEmpty/isNotEmpty`（含 null 安全），禁止直接 `.isEmpty()`；
+   - 字符串查找（`indexOf`/`lastIndexOf`）、比较、前后缀、包含、大小写、截取、拆分、trim、length 只用 `StringUtilExt`；
+   - 禁止 `parallelStream()`（共享公共 ForkJoinPool，易阻塞）；Stream 统一由 `CollectionUtilExt.toStream()` 发起；
+   - 工具类自身的底层实现（`common/util` 内委托原生/第三方 API）不受上述限制。
+10. **常量收敛（禁止散落重复定义）**：
+    - 跨模块/多类共用的字面量（状态、类型、文档标准等）必须集中到 `infra/ai/constant/AiConstants`，类为 `final`、私有构造器、全大写常量；
+    - 厂商标识与通信协议以 `ProviderInfo` 枚举（含内部 `Protocol` 枚举）为单一事实源，各处引用 `ProviderInfo.XXX.getCode()` / `Protocol.XXX.name()`，禁止再写字面量或重复常量化；
+    - 仅单个类内部使用的常量保留在该类，不强行上收（避免过度设计）。
+11. **构造器只用来创造对象**：构造器内只允许纯字段赋值（`this.x = x`），禁止写换算、解析、循环注册、线程/连接装配（RestClient、Executor 等）业务逻辑；
+    - 配置值统一用 `@Value` 字段注入（配合默认值），需要启动期装配的逻辑（注册、解析、建连、编排）放 `@PostConstruct`；
+    - 非 Spring 管理的对象需要入参校验 + 复杂装配时，用 `public static Xxx create(...)` 静态工厂承担校验与装配，构造器收窄为 `private` 且只赋值。
 
 ## 七、异常与错误码
 
@@ -141,6 +157,11 @@ public void setFunctionCode(String functionCode) {
 9. 种子装载（`AiAssetDataSeeder`）必须幂等：已有凭证、默认模型、NATIVE 函数、工具、技能、插件与工作空间安装实例重复启动不重复灌入。
 10. 本地 `resources/skills/{current-weather,daily-tech-news}/SKILL.md` 原样保留，不得删除或改动。
 11. HTTP 客户端收敛为共享 `RestClient` Bean（统一 8 秒超时）；外部 API 调用需有超时与重试。
+12. **所有提示词/固定话术必须入库，禁止运行时代码硬编码**：
+    - 系统提示、角色设定、用户消息模板、图片生成提示（默认值/前后缀）、工具描述、面向用户的兜底话术等，一律存入 `ai_prompt` 表（`prompt_code` kebab-case 唯一，`content` 支持 `{0}` 占位符）；
+    - 运行期只经 `PromptStore` 读取（`require` 原文 / `format` 渲染占位 / `getOrBlank` 宽松取值），禁止在 Agent、Tool、Controller、Service 中写字面量；
+    - `PromptStore` 启动全量载入内存，定时按 `version` 增量拉取（改内容必须递增 version），改库后秒级生效、不重启进程；`status=INACTIVE` 即下线；后续接入 RocketMQ 广播失效时调 `reload()`；
+    - 提示词内容的唯一合法硬编码位置是 `AiAssetDataSeeder` 的首次种子基线（幂等判重），新增内置提示词改种子，已有文案改数据库。
 
 ## 十一、消息规范
 

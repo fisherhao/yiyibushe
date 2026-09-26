@@ -4,6 +4,7 @@ import com.dayu.yiyibushe.common.exception.BizErrorCode;
 import com.dayu.yiyibushe.common.exception.BizException;
 import com.dayu.yiyibushe.common.exception.ParamErrorCode;
 import com.dayu.yiyibushe.common.util.CollectionUtilExt;
+import com.dayu.yiyibushe.common.util.StringUtilExt;
 import com.dayu.yiyibushe.infra.flowtask.retry.RetryStrategy;
 import com.dayu.yiyibushe.infra.flowtask.retry.RetryStrategyRegistry;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
@@ -139,7 +140,7 @@ public class TaskEngine {
         boolean reached = false;
         for (TaskNodeAction node : chain) {
             if (!reached) {
-                if (!node.getNodeType().equals(task.getCurrentNodeType())) {
+                if (!StringUtilExt.equals(node.getNodeType(), task.getCurrentNodeType())) {
                     continue;
                 }
                 reached = true;

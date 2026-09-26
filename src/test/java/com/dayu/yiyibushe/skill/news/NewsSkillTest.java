@@ -5,6 +5,8 @@ import com.dayu.yiyibushe.app.ai.tool.GetCurrentLocationTool;
 import com.dayu.yiyibushe.app.ai.tool.GetTechNewsTool;
 import com.dayu.yiyibushe.app.ai.tool.GetWeatherTool;
 import com.dayu.yiyibushe.common.util.LogUtilExt;
+import com.dayu.yiyibushe.infra.ai.constant.AiConstants;
+import com.dayu.yiyibushe.infra.ai.prompt.PromptStore;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocument;
 import com.dayu.yiyibushe.infra.ai.skill.SkillDocumentLoader;
 import com.dayu.yiyibushe.infra.ai.trace.ExecutionTrace;
@@ -51,6 +53,10 @@ class NewsSkillTest {
     /** 统一对话 Agent */
     @Autowired
     private AssistantChatAgent assistantChatAgent;
+
+    /** 提示词存储（固定话术的期望值来源） */
+    @Autowired
+    private PromptStore promptStore;
 
     /** 新闻工具（读取命中与外部请求计数） */
     @Autowired
@@ -121,8 +127,8 @@ class NewsSkillTest {
         String reply = assistantChatAgent.chat("给我讲个笑话吧", trace);
         LogUtilExt.info(log, "[NewsSkillTest] 问笑话回复: {0}", reply);
 
-        assertEquals(AssistantChatAgent.OUT_OF_SCOPE_REPLY, reply,
-                "超出范畴的问题应回复固定话术");
+        assertEquals(promptStore.require(AiConstants.PROMPT_OUT_OF_SCOPE_REPLY), reply,
+                "超出范畴的问题应回复提示词库中的固定话术");
         assertEquals(newsBefore, getTechNewsTool.getCallCount(), "问笑话不应命中新闻工具");
         assertEquals(locationBefore, getCurrentLocationTool.getCallCount(), "问笑话不应命中定位工具");
         assertEquals(weatherBefore, getWeatherTool.getCallCount(), "问笑话不应命中天气工具");
