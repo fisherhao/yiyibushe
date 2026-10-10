@@ -44,7 +44,8 @@ public record TryOnTaskResult(
      *     任务 ID
      * @param message
      *     状态文案（由调用方从提示词库取）
-     * @return RUNNING 结果
+     * @return 
+     *      RUNNING 结果
      */
     public static TryOnTaskResult running(String taskId, String message) {
         return new TryOnTaskResult(taskId, TaskStatus.RUNNING, null, null, message);
